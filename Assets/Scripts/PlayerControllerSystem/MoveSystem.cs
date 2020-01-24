@@ -23,9 +23,10 @@ public class MoveSystem
     [SerializeField] private float HorizontalSpeed;
     [SerializeField] private float VerticalSpeed;
     [SerializeField] private float MaxStepAngle; // Максимальный уголь подъёма
-    [SerializeField] private float CrouchSpeedModifier; // Множитель скорости ходьбы при приседании
-    [Tooltip("Скорость смены положения")]
-    [SerializeField] private float CrouchAlignSpeed;    // Скорость смены положения
+    // Длинна при которой нельзя идти в сторону направления
+    [SerializeField] private float DampLength;
+    [Range(0,1)] // Максимальное значение DotProduct при котором не будет ограничения по движению
+    [SerializeField] private float DampStep;
     [Space]
     [SerializeField] private LayerMask layerMask; // Слой земли
     [SerializeField] private float rayDist; // Дистанция пуска луча 
@@ -76,14 +77,24 @@ public class MoveSystem
             // Среднее значение скоростей
             velocity = ((hABS * HorizontalSpeed*speedModifier.x + vABS * VerticalSpeed*speedModifier.y) / Znam) * Time.deltaTime;
         }
-
-        if (moveState == MoveState.Crouch)
-            velocity *= CrouchSpeedModifier;
+        
 
         // Вектор суммарного направления клавиатуры
         Vector3 dir = (v * transform.forward + h * transform.right).normalized;
-
+        var relativePos = transform.position + GetBodyBones().BodyCenterOffset;
         RaycastHit hit;
+        // Если впереди есть стена
+        // GroundLayer = 9
+        if (Physics.Raycast(relativePos, dir, out hit, DampLength,layerMask))
+        {
+            
+            var dot = Vector3.Dot(hit.normal, (relativePos - hit.point).normalized);
+            if (dot > DampStep)
+                velocity = 0;
+            //Vector3 forpl = Vector3.ProjectOnPlane(transform.forward, hit.normal);
+        }
+
+       
         switch (areaState)
         {
             // Если земля под ногами
@@ -95,6 +106,10 @@ public class MoveSystem
                         areaState = AreaState.Air;
                         break;
                     }
+
+                   
+                    
+
                     //// Вектор всегда будет устремлён по вниз склону
                     //Vector3 surfParall = hit.point - transform.position - hit.normal * Vector3.Dot(hit.point - transform.position, hit.normal);
                     ////print(Vector3.Dot((surfParall + hit.point).normalized, hit.normal));
@@ -143,6 +158,16 @@ public class MoveSystem
         }
     }
 
+    
+    public float GetDampLength()
+    {
+        return DampLength;
+    }
+
+    public BodyBones GetBodyBones()
+    {
+        return BodyBones;
+    }
 
     public enum AreaState
     {

@@ -12,9 +12,9 @@ public class PoisonGasField : MonoBehaviour
 
     public void OnTriggerStay(Collider other)
     {
-        var player = other.GetComponent<PlayerLifeComponent>();
+        var playerLifeComponent = other.GetComponent<PlayerLifeComponent>();
 
-        if (player != null)
-            player.AddEffect(new PoisonGasEffect(EmmitionTime, Duration, PoisonValue));
+        if (playerLifeComponent != null)
+            playerLifeComponent.AddEffect(new PoisonGasEffect(EmmitionTime, Duration, PoisonValue));
     }
 }

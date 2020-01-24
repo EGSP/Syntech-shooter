@@ -4,6 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Linq;
+
+[RequireComponent(typeof(PlayerInventoryComponent))]
 public class PlayerControllerComponent : MonoBehaviour
 {
     [Header("Sensivity")]
@@ -25,6 +28,15 @@ public class PlayerControllerComponent : MonoBehaviour
     // Изменить потом на другую систему
     [SerializeField] private WeaponComponent Weapon;
 
+    public InventoryComponent inventoryComponent { get; private set; }
+
+    private IEnumerator reloadRoutine;
+    private bool IsReloading;
+
+    // UI ELEMENTS
+    [SerializeField] private HUDWeapon HUDWeapon;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -33,6 +45,12 @@ public class PlayerControllerComponent : MonoBehaviour
         MoveSystem.Start(GetComponent<Rigidbody>());
 
         DashSkill.Start();
+
+        inventoryComponent = GetComponent<InventoryComponent>();
+
+        HUDWeapon.SetInventorySystem(inventoryComponent.InventorySystem);
+        HUDWeapon.SetWeapon(Weapon);
+
     }
 
     // Update is called once per frame
@@ -73,11 +91,31 @@ public class PlayerControllerComponent : MonoBehaviour
         Vector2 AbsRotationXY = new Vector2(Mathf.Abs(rotationX), Mathf.Abs(rotationY));
 
         // Оружие
-        var weaponOutput = Weapon.UpdateComponent(new WeaponUpdateInput()
+        var weaponOutput = new WeaponUpdateOutput
         {
-            fire = Input.GetKey(KeyCode.Mouse0),
-            reload = Input.GetKey(KeyCode.R)
-        });
+            recoil = 0,
+            recoilopacity = 0
+        };
+
+        // Если оружие не перезаряжается
+        if (!IsReloading)
+        {
+            bool inputReload = Input.GetKeyDown(KeyCode.R);
+            var reloadNow = false;
+            if (inputReload)
+            {
+                reloadNow = ReloadWeapon(inventoryComponent.InventorySystem);
+            }
+
+            // Если оружие не перезаряжается
+            if (!reloadNow)
+            {
+                weaponOutput = Weapon.UpdateComponent(new WeaponUpdateInput
+                {
+                    fire = Input.GetKey(KeyCode.Mouse0)
+                });
+            }
+        }
 
         // Ходьба
         var moveOutput = MoveSystem.Update(new MoveSystemInput()
@@ -128,5 +166,63 @@ public class PlayerControllerComponent : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
         }
 
+    }
+
+
+    /// <summary>
+    /// Перезарядка текущего оружия
+    /// </summary>
+    /// <returns>Произошла ли перезарядка (true)</returns>
+    public bool ReloadWeapon(InventorySystem inventorySystem)
+    {
+        var weaponMagazine = Weapon.MagazineComponent;
+        int needToReload = weaponMagazine.NeedAmmo;
+
+
+        // Ищем нужный тип боеприпасов
+        var inventoryAmmo = inventorySystem.GetListOfInventoryItem(InventoryItemType.Ammo)
+            .FirstOrDefault(x => x.ItemSendMessage(weaponMagazine.BulletID) == true);
+
+        // Если боеприпасы нашлись
+        if (inventoryAmmo != null)
+        {
+            var ammo = inventoryAmmo as AmmoData;
+
+            // Если боезапас в инвентаре есть
+            if (ammo.IsEmpty == false)
+            {
+                int takenAmmo = Mathf.Min(ammo.Count, needToReload);
+                ammo.Take(takenAmmo);
+                weaponMagazine.Fill(takenAmmo);
+
+                reloadRoutine = ReloadCoroutine();
+                StartCoroutine(reloadRoutine);
+
+                
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private IEnumerator ReloadCoroutine()
+    {
+        Weapon.StopShooting();
+        IsReloading = true;
+        Weapon.State = WeaponState.Reloading;
+        HUDWeapon.UpdateAmmo();
+
+        yield return new WaitForSeconds(Weapon.ReloadTime);
+        Weapon.CheckMagazine();
+        IsReloading = false;
+    }
+
+
+    public void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+
+        var relativePos = transform.position+MoveSystem.GetBodyBones().BodyCenterOffset;
+        Gizmos.DrawLine(relativePos, relativePos +transform.forward * MoveSystem.GetDampLength());
     }
 }

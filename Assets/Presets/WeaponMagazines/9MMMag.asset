@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
   m_Name: 9MMMag
   m_EditorClassIdentifier: 
-  ID: 9MM
-  Capacity: 1000
+  BulletID: 9
+  Capacity: 100
+  ReloadFactor: 1

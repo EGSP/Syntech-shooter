@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: HoneyMode
   m_EditorClassIdentifier: 
   Name: Honey
-  MagazineID: 9MM
-  BulletFlyDistance: 50
-  Damage: 5
+  MagazineID: 9
+  ReloadTime: 1
   FireRate: 0.09
-  ReloadTime: 0.3
   RecoilForce: 150
   SpreadY: 1.1
   SpreadX: 1.1
+  PenetrationStepLength: 0
   BulletPerShoot: 1
+  BulletFlyDistance: 50

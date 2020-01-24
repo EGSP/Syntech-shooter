@@ -18,6 +18,11 @@ public class WeaponMode : ScriptableObject
     [Range(0, 5)]
     // Длинна шага пробития
     public float PenetrationStepLength;
+    // Максимальное количество шагов пробития
+    public int PenetrationsCount;
+    // Максимальное количетсво рикошетов
+    public int RicochetsCount;
+
     public int BulletPerShoot; // Количество снарядов за выстрел
     public float BulletFlyDistance; // Максимальная дистанция полёта
 }

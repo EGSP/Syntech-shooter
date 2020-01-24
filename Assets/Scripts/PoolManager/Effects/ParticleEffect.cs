@@ -21,7 +21,7 @@ public class ParticleEffect : EffectObject
         {
             Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
         }
-        
+        IsFree = true;    
     }
 
     // Проигрывает эффект
@@ -29,6 +29,7 @@ public class ParticleEffect : EffectObject
     {
         for(int i = 0; i < Particles.Length;i++)
         {
+            Particles[i].gameObject.SetActive(true);
             Particles[i].Play();
         }
     }
@@ -38,8 +39,10 @@ public class ParticleEffect : EffectObject
     {
         for (int i = 0; i < Particles.Length; i++)
         {
+            Particles[i].gameObject.SetActive(false);
             Particles[i].Stop();
             Particles[i].Play();
+            Particles[i].gameObject.SetActive(true);
         }
     }
 
@@ -48,6 +51,7 @@ public class ParticleEffect : EffectObject
     {
         for (int i = 0; i < Particles.Length; i++)
         {
+            Particles[i].gameObject.SetActive(false);
             Particles[i].Stop();
         }
     }

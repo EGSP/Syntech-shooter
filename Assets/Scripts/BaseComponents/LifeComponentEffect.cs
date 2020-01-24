@@ -12,6 +12,13 @@ public abstract class LifeComponentEffect
 
     // Слияние эффектов
     public abstract LifeComponentEffect Merge(LifeComponentEffect effect);
+
+    // Метод для передачи компонента
+    public virtual void SetLifeComponent(LifeComponent component)
+    {
+        return;
+    }
+    
 }
 
 

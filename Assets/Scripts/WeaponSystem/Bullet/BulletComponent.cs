@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(BulletEffectComponent))]
+
 public class BulletComponent : PooledObject
 {
     [Range(1,150)]
@@ -15,20 +15,18 @@ public class BulletComponent : PooledObject
     // Нормаль попадания
     private Vector3 normal;
 
-    private BulletEffectComponent effectComponent;
-
-
+    
     // Start is called before the first frame update
     void Awake()
     {
-        effectComponent = GetComponent<BulletEffectComponent>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
         transform.position = Vector3.MoveTowards(transform.position, destination, Speed * Time.deltaTime);
-        effectComponent.UpdateEffect(Time.deltaTime);
+       
 
         lifeTime -= Time.deltaTime;
         if (lifeTime <= 0)
@@ -38,9 +36,7 @@ public class BulletComponent : PooledObject
             impact.transform.position = destination;
             impact.transform.rotation = Quaternion.LookRotation(normal);
             impact.PlayEffect();
-
-            // Trail effects
-            effectComponent.Cool();
+            
             // Return to Pool
             InsertToPool();
         }

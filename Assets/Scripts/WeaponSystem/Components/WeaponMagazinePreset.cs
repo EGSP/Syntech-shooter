@@ -8,12 +8,11 @@ public class WeaponMagazinePreset: ScriptableObject
 {
     public string BulletID;
     [Space]
-    [Header("Constant")]
-    // Общая вместимость магазина
-    public int AbsoluteCapacity;
-    // Вместимость боеприпасов, которые будут находится в очереди на выстрел
-    public int ActiveCapacity;
-    [Range(0.1f,5)]
+    // Вместимость магазина
+    public int Capacity;
+    /// <summary>
+    /// Коэфицент времени перезарядки магазина
+    /// </summary>
     public float ReloadFactor;
     
     

@@ -19,8 +19,7 @@ public class WeaponTestController : MonoBehaviour
     {
         output = Weapon.UpdateComponent(new WeaponUpdateInput()
         {
-            fire = Input.GetKey(KeyCode.Mouse0),
-            reload = Input.GetKey(KeyCode.R)
+            fire = Input.GetKey(KeyCode.Mouse0)
         });
     }
 }

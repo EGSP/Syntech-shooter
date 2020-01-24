@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+using DamageEffects;
+
 public class LifeComponent : MonoBehaviour
 {
     [SerializeField] private LifeComponentPreset Preset;
@@ -23,6 +25,7 @@ public class LifeComponent : MonoBehaviour
     private float health;
 
     private List<LifeComponentEffect> LifeComponentEffects;
+    private List<DamageBehaviour> DamageBehaviours;
 
     private void Constructor()
     {
@@ -30,10 +33,11 @@ public class LifeComponent : MonoBehaviour
         Health = MaxHealth;
 
         LifeComponentEffects = new List<LifeComponentEffect>();
+        DamageBehaviours = new List<DamageBehaviour>();
     }
     
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         Constructor();
     }
@@ -48,17 +52,26 @@ public class LifeComponent : MonoBehaviour
 
             LifeComponentEffects[i] = newEffect;
         }
-
+        // Удаление отработавших эффектов
         LifeComponentEffects.RemoveAll(x => x == null);
+
+        for(int i = 0; i < DamageBehaviours.Count; i++)
+        {
+            var newBeh = DamageBehaviours[i].Update(deltaTime);
+
+            DamageBehaviours[i] = newBeh;
+        }
+        // Удаление отработавших поведений
+        DamageBehaviours.RemoveAll(x => x == null);
     }
 
     // Лечение
-    public void Heal(float value)
+    public virtual void Heal(float value)
     {
         Health += value;
     }
     // Получение урона
-    public void Hurt(float value)
+    public virtual void Hurt(float value)
     {
         Health -= value;
     }
@@ -70,13 +83,31 @@ public class LifeComponent : MonoBehaviour
 
         if(coincidence == null)
         {
+            effect.SetLifeComponent(this);
             LifeComponentEffects.Add(effect);
         }
         else
         {
-            print("Coincidence exist");
+            print("Coincidence exist (Eff)");
             // Если совпадение нашлось, то эффекты складываются
             coincidence.Merge(effect);
+        }
+    }
+
+    public void AddDamageBehaviour(DamageBehaviour beh)
+    {
+        // Совпадение
+        var coincidence = DamageBehaviours.FirstOrDefault(x => x.ID == beh.ID);
+
+        if (coincidence == null)
+        {
+            DamageBehaviours.Add(beh);
+        }
+        else
+        {
+            print("Coincidence exist (Beh)");
+            // Если совпадение нашлось, то эффекты складываются
+            coincidence.Merge(beh);
         }
     }
 }

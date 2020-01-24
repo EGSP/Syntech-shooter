@@ -21,6 +21,7 @@ sysinfo.txt
 /Assets/Standard Assets
 *.apk
 *.unitypackage
+*.meta
  
 # ===================================== #
 # Visual Studio / MonoDevelop generated #

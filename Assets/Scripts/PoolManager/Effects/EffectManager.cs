@@ -108,19 +108,30 @@ public class CycleList<T> where T : EffectObject
     private LinkedListNode<T> currentElement;
     
     /// <summary>
-    /// Возвращает следующий элемент списка
+    /// Возвращает следующий свободный элемент списка
     /// </summary>
     public T Next()
     {
         var nextElement = currentElement.Next;
+        
+        for(int i = 0; i < TValues.Count; i++)
+        {
+            if (nextElement == null)
+                nextElement = TValues.First;
 
-        if (nextElement == null)
-            nextElement = TValues.First;
+            currentElement = nextElement;
 
-        currentElement = nextElement;
+            // Если элемент свободен
+            if (currentElement.Value.IsFree)
+            {
+                break;
+            }
+
+            nextElement = currentElement.Next;
+        }
 
         currentElement.Value.StopEffect();
-        
+
         return currentElement.Value;
     }
 

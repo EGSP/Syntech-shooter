@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a0b3a053967753b44a9c9d7c488d6b00, type: 3}
   m_Name: 9MMPool
   m_EditorClassIdentifier: 
-  ID: 9MM
+  ID: 9
   Prefab: {fileID: 1507948635639471209, guid: f561572eed3239a4481a72a49a353ca9, type: 3}
   SpawnCount: 100
   LateSpawnCount: 9
