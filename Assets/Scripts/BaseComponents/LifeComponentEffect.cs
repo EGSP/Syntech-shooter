@@ -7,6 +7,11 @@ public abstract class LifeComponentEffect
 {
     public int ID { get; protected set; }
 
+    /// <summary>
+    /// Проходимость сквозь активную броню
+    /// </summary>
+    public bool ArmourPenetration {get; protected set;}
+
     // Возвращаемый эффект. Если эффект закончился, то вернётся null
     public abstract LifeComponentEffect Invoke(LifeComponent component, float deltaTime);
 

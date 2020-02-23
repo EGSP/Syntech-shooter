@@ -6,10 +6,12 @@ public class FireEffect : DurationEffect
     {
         ID = 100;
 
-        Damage = _Damage;
+        Damage = new DamageData();
+        Damage.armourModifier = 1f;
+        Damage.baseDamage = _Damage;
     }
 
-    private float Damage;
+    private DamageData Damage;
 
     // Визуальное представление данного эффекта
     private EffectObject VFX;

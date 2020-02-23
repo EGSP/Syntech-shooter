@@ -8,10 +8,21 @@ using System.Linq;
 
 public abstract class WeaponComponent : MonoBehaviour
 {
-    [SerializeField] protected Transform Trunk;
-    [SerializeField] protected LayerMask RayMask;
+    /// <summary>
+    /// Идентификатор, по которому будут искаться все ресурсы связанные с этим оружием
+    /// </summary>
+    public string ID;
 
-    [SerializeField] protected float _damage;
+    /// <summary>
+    /// Просто имя, ни на что не влияет
+    /// </summary>
+    [Tooltip("Просто имя, ни на что не влияет")]
+    public string Name;
+
+    [SerializeField] protected Transform Trunk;
+    
+
+    [SerializeField] protected DamageData _damage;
     [SerializeField] protected float _reloadTime;
     [SerializeField] protected float _fireRate;
     [Range(0, 90)]
@@ -23,9 +34,7 @@ public abstract class WeaponComponent : MonoBehaviour
     [SerializeField] protected bool _twoHanded;
     [SerializeField] protected float RecoilForce;
 
-    [Range(0, 5)]
-    // Длинна шага пробития
-    [SerializeField] protected float PenetrationStepLength;
+    
     // Максимальное количество шагов пробития
     [SerializeField] protected int PenetrationsCount;
     // Максимальное количетсво рикошетов
@@ -44,7 +53,7 @@ public abstract class WeaponComponent : MonoBehaviour
 
 
     // Свойства
-    public float Damage { get => _damage; protected set => _damage = value; }
+    public DamageData Damage { get => _damage; protected set => _damage = value; }
     public float ReloadTime { get => _reloadTime; protected set => _reloadTime = value; }
     public float FireRate { get => _fireRate; protected set => _fireRate = value; }
     public float Weight { get => _weight; protected set => _weight = value; }
@@ -101,6 +110,91 @@ public abstract class WeaponComponent : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Возвращает точки попадания, до которых попал луч с учетом количества пробитий
+    /// </summary>
+    /// <param name="hits">Точки, которые нужно обработать</param>
+    /// <param name="impactDirection">Направление, по которому направлен луч выстрела</param>
+    /// <param name="output">Точки выхода, пробитие с обратной стороны пробиваемого объекта</param>
+    /// <returns></returns>
+    protected List<RaycastHit> ComputePenetration(RaycastHit[] hits, Vector3 impactDirection, out List<Vector3> output)
+    {
+        output = new List<Vector3>();
+
+        // Точки в которые точно попали
+        List<RaycastHit> impactPoints = new List<RaycastHit>();
+       
+        // Оставшиеся шаги для пробития
+        int steps = PenetrationsCount;
+
+        var pLength = GameManager.Instance.PenetrationStepLength;
+        var pColl = GameManager.Instance.PenetrationCollider;
+
+        // Проходимся по всем препятствиям
+        for (int i = 0; i < hits.Length; i++)
+        {
+            var hit = hits[i];
+            impactPoints.Add(hit);
+
+            // Если больше нельзя ничего пробить
+            if (steps == 0)
+                break;
+
+            // Расчитываем пробитие
+            // j - количество затраченных шагов для пробития
+            for (int j = 1; steps > 0; steps--,j++)
+            {
+                // Позиция выхода пробития
+                var penetrationExit = hit.point + impactDirection * pLength * j;
+
+                float distance;
+                Vector3 direction;
+                bool isOverlapped = Physics.ComputePenetration(
+                    pColl, penetrationExit, transform.rotation,
+                    hit.collider, hit.transform.position, hit.transform.rotation,
+                    out direction, out distance);
+
+                // Если пробили, то переходим к следующему препятствию
+                // И добавляем точку выхода пробития
+                if (!isOverlapped)
+                {
+                    // Добавляем точку выхода пробития
+                    output.Add(penetrationExit);
+                    break;
+                }
+            }
+        }
+        return impactPoints;
+    }
+
+    /// <summary>
+    /// Сортировка точек луча по дистанции 
+    /// </summary>
+    /// <param name="raycastHits">Точки попадания</param>
+    protected void OrderRaycastHits(ref RaycastHit[] raycastHits)
+    {
+        raycastHits.OrderBy(x => x.distance);
+    }
+
+    /// <summary>
+    /// Нахождение компонента LifeComponent в точках луча
+    /// </summary>
+    protected List<LifeComponent> LifeComponentsFromRayhits(List<RaycastHit> hits)
+    {
+        var lifeList = new List<LifeComponent>();
+        // Вычисляем LifeComponent в точках попадания
+        for (int l = 0; l < hits.Count; l++)
+        {
+            var hit = hits[l];
+            // Нанесение урона
+            var life = hit.collider.gameObject.GetComponent<LifeComponent>();
+            if (life != null)
+            {
+                lifeList.Add(life);
+            }
+        }
+        return lifeList;
+    }
 
     public virtual void StopShooting()
     {
@@ -184,207 +278,3 @@ public enum WeaponState
 
 
 
-//void Awake()
-//{
-//    CheckComponents();
-
-//    startPosition = transform.localPosition;
-
-//    fireRoutine = FireCoroutine();
-
-//    CheckMagazine();
-//}
-
-//// Update is called once per frame
-//public WeaponUpdateOutput UpdateComponent(WeaponUpdateInput input)
-//{
-//    var output = new WeaponUpdateOutput();
-//    output.weaponstate = State;
-//    output.recoil = Mode.RecoilForce * Convert.ToInt32(State == WeaponState.Shooting);
-//    output.recoilopacity = recoilOpacity;
-
-//    #region Обдумать реализацию ещё раз
-//    // Анимация отдачи
-//    AnimateRecoil();
-//    #endregion
-
-//    // Совершает ли игрок какое либо действие 
-//    var activity = input.fire;
-//    if (activity == false)
-//    {
-//        recoilOpacity -= Time.deltaTime * RecoilOpacityDecrease;
-//        recoilOpacity = Mathf.Clamp(recoilOpacity, 0, 1);
-
-//        return output;
-//    }
-
-//    if (input.fire)
-//    {
-//        // TRY TO FIRE
-//        if (State == WeaponState.Done)
-//        {
-//            Fire();
-//        }
-//        return output;
-//    }
-
-//    throw new System.Exception("WeaponUpdate вызов должен быть завершён ранее");
-//}
-
-//// Активация стрельбы
-//private void Fire()
-//{
-//    // Начинаем стрельбу если есть боеприпасы в очереди
-//    if (MagazineData.CountIsZero == false)
-//    {
-//        recoilOpacity += Time.deltaTime * RecoilOpacityIncrease;
-//        recoilOpacity = Mathf.Clamp(recoilOpacity, 0, 1);
-
-//        fireRoutine = FireCoroutine();
-//        StartCoroutine(fireRoutine);
-
-//        #region Action; 
-
-//        int iterations = Mathf.Clamp(Mode.BulletPerShoot, 0, MagazineData.Count); // Максимум снарядов за выстрел
-
-//        for (int j = 0; j < iterations; j++) // Запускаем нужное количество снарядов за выстрел
-//        {
-//            Vector3 sprayOffset = new Vector3(
-//                UnityEngine.Random.Range(-Mode.SpreadX, Mode.SpreadX),
-//                UnityEngine.Random.Range(-Mode.SpreadY, Mode.SpreadY),
-//                0);
-//            // Вектор направления выстрела
-//            Vector3 ShootForward = Quaternion.Euler(sprayOffset.y, sprayOffset.x, 0) * Trunk.forward;
-
-//            // Получение пули из пула объектов
-//            BulletComponent bullet = PoolManager.Instance.Take(MagazineData.BulletID) as BulletComponent;
-
-//            Vector3 hitPoint;
-//            RaycastHit hit;
-//            if (Physics.Raycast(Trunk.transform.position, ShootForward, out hit, Mode.BulletFlyDistance, RayMask))
-//            {
-//                // При попадании пуля летит в точку попадания
-//                hitPoint = hit.point;
-//                print(hit.transform.name);
-//            }
-//            else
-//            {
-//                // При непопадании пуля будет лететь в точку пространства куда направлен ствол
-//                var pointInAir = Trunk.transform.position + ShootForward * Mode.BulletFlyDistance;
-//                hitPoint = pointInAir;
-//            }
-
-//            bullet.transform.position = Trunk.transform.position;
-//            bullet.transform.LookAt(hitPoint);
-
-//            bullet.Push(hitPoint, hit.normal);
-
-//            MagazineData.Count--;
-//        }
-
-//        #endregion
-//    }
-//    else
-//    {
-//        print("Magazine not availabile to shoot");
-//    }
-//}
-
-///// <summary>
-///// Проверки магазина на наличи боеприпасов
-///// </summary>
-//public void CheckMagazine()
-//{
-//    if (MagazineData.CountIsZero)
-//    {
-//        State = WeaponState.Empty;
-//    }
-//    else
-//    {
-//        State = WeaponState.Done;
-//    }
-//}
-
-
-//private IEnumerator FireCoroutine()
-//{
-//    State = WeaponState.Shooting;
-//    RecoilAnimation.Play(Mode.FireRate);
-
-//    yield return new WaitForSeconds(Mode.FireRate);
-
-//    CheckMagazine();
-//}
-
-//private void AnimateRecoil()
-//{
-//    float offsetZ = 0;
-//    if (RecoilAnimation.IsAnimating)
-//    {
-//        offsetZ = RecoilAnimation.UpdateCurve(Time.deltaTime);
-
-//        transform.localPosition = startPosition - new Vector3(0, 0, offsetZ * ReacoilAnimationIntensity);
-//    }
-//}
-
-
-//public void StopShooting()
-//{
-//    recoilOpacity = 0;
-//    StopCoroutine(fireRoutine);
-//}
-///// <summary>
-///// Устанавливает новый магазин и возвращает старый
-///// </summary>
-///// <param name="_MagazineComponent"></param>
-///// <returns></returns>
-//public WeaponMagazineComponent WeldMagazine(WeaponMagazineComponent _MagazineComponent)
-//{
-//    var oldComponent = MagazineComponent;
-//    // Присоединение нового компонента
-//    MagazineComponent = _MagazineComponent;
-//    MagazineData = _MagazineComponent.GetData();
-
-//    return oldComponent;
-//}
-
-
-//private void CheckComponents()
-//{
-//    if (MagazineComponent == null)
-//    {
-//        var mag = GetComponent<WeaponMagazineComponent>();
-
-//        if (mag == null)
-//            throw new System.NullReferenceException();
-
-//        WeldMagazine(mag);
-//    }
-
-//}
-
-//}
-
-//public struct WeaponUpdateInput
-//{
-//    // Нажата ли кнопка стрельбы
-//    public bool fire;
-//}
-
-//public struct WeaponUpdateOutput
-//{
-//    // Cостояние оружия
-//    public WeaponState weaponstate;
-//    // Сила отдачи 
-//    public float recoil;
-//    // Количество силы оттдачи
-//    public float recoilopacity;
-//}
-
-//public enum WeaponState
-//{
-//    Empty, // Пустой магазин
-//    Reloading, // В стадии перезарядки
-//    Done, // Можно стрелять
-//    Shooting // В стадии стрельбы
-//}

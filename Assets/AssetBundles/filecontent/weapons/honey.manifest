@@ -1,0 +1,40 @@
+ManifestFileVersion: 0
+CRC: 2513771386
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 83ddbe6ffec197c4ca928f8571164edb
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 22bf56fb69ca43161c9c181970984fcf
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 5c8fb2130269efe4d8171d4f9c03a867, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 6bf291a67ea684248b82cfdcf8dc7e2c, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 135
+  Script: {instanceID: 0}
+Assets:
+- Assets/Prefabs/WeaponComponents/Weapons/W_Honey.prefab
+Dependencies: []

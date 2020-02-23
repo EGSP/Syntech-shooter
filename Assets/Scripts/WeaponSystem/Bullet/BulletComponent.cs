@@ -31,12 +31,6 @@ public class BulletComponent : PooledObject
         lifeTime -= Time.deltaTime;
         if (lifeTime <= 0)
         {
-            // Activate effects
-            var impact = EffectManager.Instance.Take("IS");
-            impact.transform.position = destination;
-            impact.transform.rotation = Quaternion.LookRotation(normal);
-            impact.PlayEffect();
-            
             // Return to Pool
             InsertToPool();
         }

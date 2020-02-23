@@ -11,5 +11,10 @@ public class BodyBones
 
     // Вектор смещения центра тела
     public Vector3 BodyCenterOffset;
+
+    // Родительский объект камеры, к которому она прикреплена
+    // И имеет локальные координаты (0,0,0) 
+    public Transform CameraParent;
+    
 }
 

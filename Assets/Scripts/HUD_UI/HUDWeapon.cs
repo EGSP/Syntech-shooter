@@ -8,9 +8,6 @@ using TMPro;
 
 public class HUDWeapon : MonoBehaviour
 {
-
-    [SerializeField] private WeaponComponent Weapon;
-
     [SerializeField] private TMP_Text AmmoText;
     [SerializeField] private TMP_Text WeaponStatusText;
 
@@ -19,6 +16,7 @@ public class HUDWeapon : MonoBehaviour
     private StringBuilder WeaponStatusTextBuilder;
 
     private InventorySystem InventorySystem;
+    private WeaponComponent Weapon;
     private AmmoData WeaponUsedAmmo;
 
     private void Awake()
@@ -29,10 +27,10 @@ public class HUDWeapon : MonoBehaviour
 
 
     // Update is called once per frame
-    public void Update()
+    public void UpdateUI()
     {
-
         DrawAmmoText();
+        
         DrawWeaponStatusText();
     }
 
@@ -73,21 +71,6 @@ public class HUDWeapon : MonoBehaviour
         {
             // Создаём пустышку
             WeaponUsedAmmo = new AmmoData(Weapon.MagazineComponent.BulletID, 0);
-        }
-    }
-
-    public void UpdateAmmo()
-    {
-        // Ищем нужный тип боеприпасов
-        var inventoryAmmo = InventorySystem.GetListOfInventoryItem(InventoryItemType.Ammo)
-            .FirstOrDefault(x => x.ItemSendMessage(Weapon.MagazineComponent.BulletID) == true);
-
-        // Если боеприпасы нашлись
-        if (inventoryAmmo != null)
-        {
-            var ammo = inventoryAmmo as AmmoData;
-
-            WeaponUsedAmmo = ammo;
         }
     }
 

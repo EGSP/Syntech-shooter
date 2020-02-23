@@ -11,6 +11,8 @@ public abstract class EffectObject : MonoBehaviour
 
     public abstract void PlayEffect();
 
+    public abstract void PlayEffect(Vector3 position, Vector3 normal);
+
     public abstract void StopEffect();
 
     public abstract void ResetEffect();

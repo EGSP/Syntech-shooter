@@ -17,8 +17,10 @@ MonoBehaviour:
   ReloadTime: 1
   FireRate: 0.09
   RecoilForce: 150
-  SpreadY: 1.1
-  SpreadX: 1.1
+  SpreadY: 0.05
+  SpreadX: 0.05
   PenetrationStepLength: 0
+  PenetrationsCount: 0
+  RicochetsCount: 0
   BulletPerShoot: 1
   BulletFlyDistance: 50

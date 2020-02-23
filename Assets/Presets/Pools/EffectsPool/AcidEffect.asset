@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a0e964aa9b8913479485b5a382610f2, type: 3}
+  m_Name: AcidEffect
+  m_EditorClassIdentifier: 
+  ID: 103
+  Prefab: {fileID: 3682122062130203058, guid: b3167a8e5b4bb9541be8e07f4fac8355, type: 3}
+  SpawnCount: 7

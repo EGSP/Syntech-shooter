@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerLifeComponent : LifeComponent
 {
     public LayerMask MedkitsLayer;
+    [Tooltip("Поднятие аптечек")]
     public float OverlapRadius;
     public Vector3 CentreOffset;
 

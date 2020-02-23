@@ -3,56 +3,71 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ParticleEffect : EffectObject
+namespace EffectObjects
 {
-    [Tooltip("Системы частиц, запускаемые при активации, автоматически заполняется при отсутствии элементов")]
-    [SerializeField] private ParticleSystem[] Particles;
-
-
-    // Инициализация массива
-    public override void Initialize()
+    public class ParticleEffect : EffectObject
     {
-        if(Particles.Length == 0)
+        [Tooltip("Системы частиц, запускаемые при активации, автоматически заполняется при отсутствии элементов")]
+        [SerializeField] private ParticleSystem[] Particles;
+
+
+        // Инициализация массива
+        public override void Initialize()
         {
-            Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
+            if (Particles.Length == 0)
+            {
+                Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
+            }
+
+            if (Particles == null)
+            {
+                Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
+            }
+            IsFree = true;
         }
 
-        if (Particles == null)
+        // Проигрывает эффект
+        public override void PlayEffect()
         {
-            Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
+            IsFree = false;
+            for (int i = 0; i < Particles.Length; i++)
+            {
+                Particles[i].gameObject.SetActive(true);
+                Particles[i].Play();
+            }
         }
-        IsFree = true;    
-    }
 
-    // Проигрывает эффект
-    public override void PlayEffect()
-    {
-        for(int i = 0; i < Particles.Length;i++)
+        public override void PlayEffect(Vector3 position, Vector3 normal)
         {
-            Particles[i].gameObject.SetActive(true);
-            Particles[i].Play();
+            IsFree = false;
+            transform.position = position;
+            transform.rotation = Quaternion.LookRotation(normal);
+            PlayEffect();
         }
-    }
 
-    // Переигрывает эффект
-    public override void ResetEffect()
-    {
-        for (int i = 0; i < Particles.Length; i++)
+        // Переигрывает эффект
+        public override void ResetEffect()
         {
-            Particles[i].gameObject.SetActive(false);
-            Particles[i].Stop();
-            Particles[i].Play();
-            Particles[i].gameObject.SetActive(true);
+            IsFree = false;
+            for (int i = 0; i < Particles.Length; i++)
+            {
+                Particles[i].gameObject.SetActive(false);
+                Particles[i].Stop();
+
+                Particles[i].gameObject.SetActive(true);
+                Particles[i].Play();
+            }
         }
-    }
 
-    // Останавливает эффект
-    public override void StopEffect()
-    {
-        for (int i = 0; i < Particles.Length; i++)
+        // Останавливает эффект
+        public override void StopEffect()
         {
-            Particles[i].gameObject.SetActive(false);
-            Particles[i].Stop();
+            IsFree = true;
+            for (int i = 0; i < Particles.Length; i++)
+            {
+                Particles[i].gameObject.SetActive(false);
+                Particles[i].Stop();
+            }
         }
     }
 }

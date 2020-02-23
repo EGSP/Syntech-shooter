@@ -16,9 +16,16 @@ public class WeaponMagazineComponent : MonoBehaviour
         ReloadFactor = Preset.ReloadFactor;
 
         DamageBehaviours = new DamageBehaviour[] {
-            new FireBehaviour(_EmmitTime: 3, _Duration: 1.5f,
-            _EffectEmmitTime: 3, _EffectDurTime: 1,
-            _Radius: 3, _Damage: 10, _IsParent: true)
+            //new FireBehaviour(_EmmitTime: 3, _Duration: 1.5f,
+            //_EffectEmmitTime: 3, _EffectDurTime: 1,
+            //_Radius: 3, _Damage: 10, _IsParent: true)
+
+            //new PlasmaBehaviour(_EffectEmmitTime: 3,_EffectDurTime: 0.15f,_Damage: 15)
+            //new AcidBehaviour(_Duration:0.2f,_Damage:3,_SpeedModifier:0.3f,_ModifierTime:1)
+            //new ShockBehaviour(3)
+            //new GrowingBehaviour(5,20)
+            //new HEIBehaviour(5,3)
+            new CumulativeBehaviour(5,3)
         };
     }
 

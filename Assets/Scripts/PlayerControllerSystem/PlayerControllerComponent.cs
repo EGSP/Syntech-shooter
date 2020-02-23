@@ -13,7 +13,7 @@ public class PlayerControllerComponent : MonoBehaviour
     [SerializeField] private float mouseSensivityX;
     [SerializeField] private float mouseSensivityY;
     [Space]
-    // Системы
+    [Header("Systems")]
     [SerializeField] private MoveSystem MoveSystem;
     [Space]
     [SerializeField] private CameraSystem CameraSystem;
@@ -25,42 +25,64 @@ public class PlayerControllerComponent : MonoBehaviour
     [Header("Player Skills")]
     [SerializeField] private DashSkill DashSkill;
 
-    // Изменить потом на другую систему
-    [SerializeField] private WeaponComponent Weapon;
 
-    public InventoryComponent inventoryComponent { get; private set; }
+    [Header("Weapons")]
+    [SerializeField] private WeaponHolder WeaponHolder;
+    // Кнопка поднятия оружия
+    [SerializeField] private KeyCode GetUpWeaponKey;
+    // Кнопки смены оружия. Позиция в массиве влияет на индекс оружия
+    [SerializeField] private KeyCode[] ChangeWeaponKeys;
+    // Время смены оружия
+    [SerializeField] private float WeaponChangeTime;
+
+    /// <summary>
+    /// Текущее оружие
+    /// </summary>
+    private WeaponComponent CurrentWeapon;
+
+    /// <summary>
+    /// Инвентарь игрока
+    /// </summary>
+    public InventoryComponent InventoryComponent { get; private set; }
+
+    /// <summary>
+    /// Включен ли контроллер
+    /// </summary>
+    private bool IsControlActive;
 
     private IEnumerator reloadRoutine;
     private bool IsReloading;
 
-    // UI ELEMENTS
-    [SerializeField] private HUDWeapon HUDWeapon;
+    private IEnumerator weaponChangeRoutine;
+    private bool IsWeaponChanging;
 
+ 
 
     // Start is called before the first frame update
     void Start()
     {
+        ActivateControll();
+
         CameraSystem.Start();
         HandSystem.Start();
         MoveSystem.Start(GetComponent<Rigidbody>());
 
         DashSkill.Start();
 
-        inventoryComponent = GetComponent<InventoryComponent>();
-
-        HUDWeapon.SetInventorySystem(inventoryComponent.InventorySystem);
-        HUDWeapon.SetWeapon(Weapon);
-
+        InventoryComponent = GetComponent<InventoryComponent>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (IsControlActive == false)
+            return;
+
         float deltaTime = Time.deltaTime;
         
         // Slope Input
-        bool inputRight = Input.GetKey(KeyCode.E);
-        bool inputLeft = Input.GetKey(KeyCode.Q);
+        bool inputRight = Input.GetKeyDown(KeyCode.E);
+        bool inputLeft = Input.GetKeyDown(KeyCode.Q);
         // Move Input
         float horizontalInput = Input.GetAxisRaw("Horizontal");
         float verticalInput = Input.GetAxisRaw("Vertical");
@@ -69,7 +91,8 @@ public class PlayerControllerComponent : MonoBehaviour
         float rotationY = Input.GetAxis("Mouse X")*mouseSensivityX; // Вращение по горизонту
         float rotationX = -Input.GetAxis("Mouse Y")*mouseSensivityY; // Вращение по вертикали
 
-        bool inputDash = Input.GetKeyDown(KeyCode.Space); // DashSkill
+        // DashSkill
+        bool inputDash = Input.GetKeyDown(KeyCode.Space); 
         
         // Use DashSkill
         #region DashSkill
@@ -98,22 +121,49 @@ public class PlayerControllerComponent : MonoBehaviour
         };
 
         // Если оружие не перезаряжается
-        if (!IsReloading)
+        if (!IsReloading && !IsWeaponChanging)
         {
-            bool inputReload = Input.GetKeyDown(KeyCode.R);
-            var reloadNow = false;
-            if (inputReload)
+            for(var i = 0; i < ChangeWeaponKeys.Length; i++)
             {
-                reloadNow = ReloadWeapon(inventoryComponent.InventorySystem);
+                // Если игрок решил сменить оружие
+                if (Input.GetKeyDown(ChangeWeaponKeys[i]))
+                {
+                    bool changed;
+                    CurrentWeapon = WeaponHolder.TakeWeapon(i, out changed);
+
+                    // Смена оружия
+                    if (changed)
+                    {
+                        weaponChangeRoutine = WeaponChangeCoroutine();
+                        StartCoroutine(weaponChangeRoutine);
+                    }
+
+                    break;
+                }
             }
 
-            // Если оружие не перезаряжается
-            if (!reloadNow)
+            // Если оружие не меняется
+            if (IsWeaponChanging == false)
             {
-                weaponOutput = Weapon.UpdateComponent(new WeaponUpdateInput
+                // Если оружие есть в руках
+                if (CurrentWeapon != null)
                 {
-                    fire = Input.GetKey(KeyCode.Mouse0)
-                });
+                    bool inputReload = Input.GetKeyDown(KeyCode.R);
+                    var reloadNow = false;
+                    if (inputReload)
+                    {
+                        reloadNow = ReloadWeapon(InventoryComponent.InventorySystem);
+                    }
+
+                    // Если оружие не перезаряжается
+                    if (!reloadNow)
+                    {
+                        weaponOutput = CurrentWeapon.UpdateComponent(new WeaponUpdateInput
+                        {
+                            fire = Input.GetKey(KeyCode.Mouse0)
+                        });
+                    }
+                }
             }
         }
 
@@ -175,7 +225,7 @@ public class PlayerControllerComponent : MonoBehaviour
     /// <returns>Произошла ли перезарядка (true)</returns>
     public bool ReloadWeapon(InventorySystem inventorySystem)
     {
-        var weaponMagazine = Weapon.MagazineComponent;
+        var weaponMagazine = CurrentWeapon.MagazineComponent;
         int needToReload = weaponMagazine.NeedAmmo;
 
 
@@ -207,14 +257,55 @@ public class PlayerControllerComponent : MonoBehaviour
 
     private IEnumerator ReloadCoroutine()
     {
-        Weapon.StopShooting();
+        CurrentWeapon.StopShooting();
         IsReloading = true;
-        Weapon.State = WeaponState.Reloading;
-        HUDWeapon.UpdateAmmo();
+        CurrentWeapon.State = WeaponState.Reloading;
+        //HUDWeapon.UpdateAmmo();
 
-        yield return new WaitForSeconds(Weapon.ReloadTime);
-        Weapon.CheckMagazine();
+        yield return new WaitForSeconds(CurrentWeapon.ReloadTime);
+        CurrentWeapon.CheckMagazine();
         IsReloading = false;
+    }
+
+    private IEnumerator WeaponChangeCoroutine()
+    {
+        CurrentWeapon.StopShooting();
+        IsWeaponChanging = true;
+        yield return new WaitForSeconds(WeaponChangeTime);
+
+        IsWeaponChanging = false;
+    }
+
+    /// <summary>
+    /// Включение управления 
+    /// </summary>
+    public void ActivateControll()
+    {
+        IsControlActive = true;
+    }
+
+    /// <summary>
+    /// Полное выключение управления
+    /// </summary>
+    public void DeactivateControll()
+    {
+        IsControlActive = false;
+    }
+
+    /// <summary>
+    /// Активация камеры
+    /// </summary>
+    public void ActivateCamera()
+    {
+        CameraSystem.UnityCamera.enabled = true;
+    }
+
+    /// <summary>
+    /// Деактивация камеры
+    /// </summary>
+    public void DeactivateCamera()
+    {
+        CameraSystem.UnityCamera.enabled = false;
     }
 
 

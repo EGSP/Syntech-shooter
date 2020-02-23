@@ -31,7 +31,7 @@ public class PoisonGasEffect : LifeComponentEffect
         {
             duration = Duration;
 
-            component.Hurt(hurtValue);
+            component.Hurt(new DamageData() { baseDamage = hurtValue });
         }
 
         if (emmitTime < 0)

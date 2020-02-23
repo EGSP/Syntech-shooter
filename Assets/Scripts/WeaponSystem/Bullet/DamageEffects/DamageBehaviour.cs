@@ -12,22 +12,35 @@ namespace DamageEffects
         public int ID = -1;
 
         /// <summary>
+        /// Проходимость сквозь активную броню
+        /// </summary>
+        public bool ArmourPenetration { get; protected set; }
+
+        /// <summary>
         /// Носитель эффекта
         /// </summary>
         protected LifeComponent Carrier;
 
-        public virtual void Start(LifeComponent _Carrier)
+        /// <summary>
+        /// Слой принадлежащий объектам LifeComponent
+        /// </summary>
+        protected LayerMask LifeLayerMask;
+
+        public virtual void Start(LifeComponent _Carrier, LayerMask _LifeLayerMask)
         {
             Carrier = _Carrier;
+            LifeLayerMask = _LifeLayerMask;
+
+            Carrier.AddDamageBehaviour(this);
         }
 
         public abstract DamageBehaviour Update(float deltaTime);
 
-        public abstract void OnImpactWall(RaycastHit[] points);
+        public abstract void OnImpactAll(List<RaycastHit> points);
 
         public abstract void OnImpactLife(List<LifeComponent> components);
 
-        public abstract void OnPenetrate(RaycastHit[] points, Vector3 direction, float stepLength);
+        public abstract void OnPenetrate(List<Vector3> outputPoints, Vector3 direction);
 
         public abstract void Merge(DamageBehaviour behaviour);
 
@@ -79,101 +92,6 @@ namespace DamageEffects
 
             emmitTime = anotherBeh.EmmitTime;
             Duration = anotherBeh.Duration;
-        }
-    }
-    
-
-    public class FireBehaviour : DurationDamageBehaviour
-    {
-        public FireBehaviour(
-            float _EmmitTime, float _Duration,
-            float _EffectEmmitTime, float _EffectDurTime,
-            float _Radius, float _Damage, bool _IsParent)
-            : base(_EmmitTime, _Duration)
-        {
-            // ID == FireEffect.ID
-            ID = 100;
-
-            EffectEmmitTime = _EffectEmmitTime;
-            EffectDurTime = _EffectDurTime;
-
-            Radius = _Radius;
-            Damage = _Damage;
-
-            IsParent = _IsParent;
-        }
-
-        // Радиус распрстранения эффекта
-        private float Radius;
-        // Урон наносимый эффектом
-        private float Damage;
-
-        // Визуальный эффект огня
-        private EffectObject VisualEffect;
-
-        // Продолжительность жизни эффекта
-        private float EffectEmmitTime;
-        // Периодичность эффекта
-        private float EffectDurTime;
-
-        // Является ли данный объект родителем
-        // Объекты созданные родителем не могут распространять огонь
-        private bool IsParent;
-        
-
-        public override void OnImpactWall(RaycastHit[] points)
-        {
-            return;
-        }
-        
-        public override void OnImpactLife(List<LifeComponent> components)
-        {
-            // Добавляем эффект возгорания на все компоненты
-            for(int i = 0; i < components.Count; i++)
-            {
-                components[i].AddEffect(new FireEffect(EffectEmmitTime, EffectDurTime, Damage));
-            }
-        }
-
-        public override void OnPenetrate(RaycastHit[] points, Vector3 direction, float stepLength)
-        {
-            return;
-        }
-
-        public override DamageBehaviour Update(float deltaTime)
-        {
-            return base.Update(deltaTime);
-        }
-
-        public override void Start(LifeComponent _Carrier)
-        {
-            base.Start(_Carrier);
-        }
-
-        public override DamageBehaviour Clone()
-        {
-            return new FireBehaviour(EmmitTime, Duration, EffectEmmitTime, EffectDurTime, Radius, Damage, IsParent);
-        }
-
-        protected override void OnDuration()
-        {
-            if (IsParent == false)
-                return;
-            
-            // Находим LifeComponent объекты и распространяем на них огонь
-            var colls = Physics.OverlapSphere(Carrier.transform.position, Radius, layerMask: 13);
-
-            for (int i = 0; i < colls.Length; i++)
-            {
-                var coll = colls[i];
-
-                var lifeComponent = coll.GetComponent<LifeComponent>();
-
-                if (lifeComponent != null)
-                {
-                    lifeComponent.AddEffect(new FireEffect(EffectEmmitTime, EffectDurTime, Damage));
-                }
-            }
         }
     }
 }

@@ -68,46 +68,67 @@ public class AutoRifleWeapon : WeaponComponent
                     0);
                 // Вектор направления выстрела
                 Vector3 ShootForward = Quaternion.Euler(sprayOffset.y, sprayOffset.x, 0) * Trunk.forward;
+                ShootForward.Normalize();
+               
+                var raycastAllHits = Physics.RaycastAll(Trunk.transform.position, ShootForward, BulletFlyDistance, GameManager.Instance.ShootRayMask);
+                OrderRaycastHits(ref raycastAllHits);
+
+                // Точки выхода пробития
+                List<Vector3> outputs;
+                var acceptedHits = ComputePenetration(raycastAllHits, ShootForward, out outputs);
+                // Получение списка LifeComponent
+                var lifeList = LifeComponentsFromRayhits(acceptedHits);
+
+                // Наносим базовый урон
+                for(int i = 0; i < lifeList.Count;i++)
+                {
+                    lifeList[i].Hurt(Damage);
+                }
+
+                // Эффекты урона магазина
+                for (int i = 0; i < MagazineComponent.DamageBehaviours.Length; i++)
+                {
+                    var beh = MagazineComponent.DamageBehaviours[i].Clone();
+
+                    if (lifeList.Count != 0)
+                    {
+                        beh.Start(lifeList[0], GameManager.Instance.LifeLayerMask);
+                        beh.OnImpactLife(lifeList);
+                    }
+
+                    // Регистрация попаданий в стены
+                    beh.OnImpactAll(acceptedHits);
+                    // Регистрация пробитий стен
+                    beh.OnPenetrate(outputs, ShootForward);
+                }
+
+                // Спавн эффектов
+                for (int i = 0; i < acceptedHits.Count; i++)
+                {
+                    var hit = acceptedHits[i];
+                    var impact = EffectManager.Instance.Take("IS");
+
+                    impact.PlayEffect(hit.point, hit.normal);
+                }
 
                 // Получение пули из пула объектов
                 BulletComponent bullet = PoolManager.Instance.Take(MagazineComponent.BulletID) as BulletComponent;
-
-                Vector3 hitPoint;
-                RaycastHit hit;
-                if (Physics.Raycast(Trunk.transform.position, ShootForward, out hit, BulletFlyDistance, RayMask))
+                // Спавн пули
+                if (acceptedHits.Count != 0)
                 {
-                    // При попадании пуля летит в точку попадания
-                    hitPoint = hit.point;
+                    var hit = acceptedHits[acceptedHits.Count - 1];
+                    bullet.transform.position = Trunk.transform.position;
+                    bullet.transform.LookAt(hit.point);
 
-                    // Нанесение урона
-                    var life = hit.collider.gameObject.GetComponent<LifeComponent>();
-                    if (life != null)
-                    {
-                        // Доп. урон
-                        for (int i = 0; i < MagazineComponent.DamageBehaviours.Length; i++)
-                        {
-                            var beh = MagazineComponent.DamageBehaviours[i].Clone();
-                            beh.Start(life);
-                            beh.OnImpactLife(new List<LifeComponent>() { life });
-                            life.AddDamageBehaviour(beh);
-                        }
-
-                        // Основной урон
-                        life.Hurt(Damage);
-                    }
-
+                    bullet.Push(hit.point, hit.normal);
                 }
                 else
                 {
-                    // При непопадании пуля будет лететь в точку пространства куда направлен ствол
-                    var pointInAir = Trunk.transform.position + ShootForward * BulletFlyDistance;
-                    hitPoint = pointInAir;
+                    bullet.transform.position = Trunk.transform.position;
+                    bullet.transform.LookAt(ShootForward);
+
+                    bullet.Push(Trunk.transform.position + ShootForward * BulletFlyDistance, ShootForward);
                 }
-
-                bullet.transform.position = Trunk.transform.position;
-                bullet.transform.LookAt(hitPoint);
-
-                bullet.Push(hitPoint, hit.normal);
 
                 MagazineComponent.Count--;
             }

@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 2506533102
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: filecontent/weapons/honey
+      Dependencies: {}

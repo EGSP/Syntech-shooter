@@ -16,14 +16,35 @@ public class SlopeSystem
     [Space]
     [SerializeField] private float SlopeDelta; // Скорость наклона
 
+    private float Dir
+    {
+        get { return dir; }
+        set
+        {
+            // Если ничего не введено
+            if (value == 0)
+                return;
 
+            // Если введено то же значение
+            if (value == dir)
+            {
+                dir = 0;
+                return;
+            }
+
+            // Если введено зеркальное значение
+            if (value != dir)
+                dir = value;
+        }
+    }
+    private float dir;
     // Наклоняет в сторону dir == left or right
     public SlopeSystemOutput Update(SlopeSystemInput IN)
     {
         int R = IN.inputRight ? -1 : 0;
         int L = IN.inputLeft ? 1 : 0;
 
-        int dir = L + R;
+        Dir = R + L;
 
         // Угол наклона по вертикали
         float headFactor = IN.cameraLocalEulerAnglesX;
