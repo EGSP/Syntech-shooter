@@ -44,6 +44,9 @@ namespace ResourceSystems
 
                 var reg = new Regex("assetbundlesfolder: \"(\\S+)\"",RegexOptions.IgnorePatternWhitespace);
                 AssetBundlesFolder = reg.Match(content).Groups[1].Value;
+
+                sr.Close();
+                fs.Close();
             }
             else
             {

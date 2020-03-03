@@ -49,7 +49,7 @@ public class PlayerInventoryComponent : InventoryComponent
             else
             {
                 print("Ammo listed");
-                ammoList.Add(ammoData);
+                InventorySystem.AddItem(ammoData.ItemType, ammoData);
             }
             
         }

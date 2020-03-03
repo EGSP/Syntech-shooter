@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,6 +19,8 @@ public class ActiveArmour
         timerCallbacker.OnEmmitionEndCallback += () => IsRegenerationTime = true;
         timerCallbacker.OnResetCallback += () => IsRegenerationTime = false;
     }
+
+    public event Action<float, float> OnArmourChanged = delegate { };
 
     // Максимальный показатель брони
     public float MaxBattery { get; protected set; }
@@ -40,6 +43,8 @@ public class ActiveArmour
             if (value > MaxBattery)
                 value = MaxBattery;
             battery = value;
+
+            OnArmourChanged(battery, MaxBattery);
         }
     }
     private float battery;

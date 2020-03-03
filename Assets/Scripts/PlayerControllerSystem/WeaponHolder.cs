@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(InventoryComponent))]
-public class WeaponHolder : MonoBehaviour
+public class WeaponHolder : MonoBehaviour, IObservable
 {
     /// <summary>
     /// Максимальное количество слотов под оружие
@@ -31,9 +32,21 @@ public class WeaponHolder : MonoBehaviour
     private InventoryComponent playerInventory;
 
     /// <summary>
-    /// Интерфейс отрисовки оружия 
+    /// Возвращает добавленное оружие
     /// </summary>
-    [SerializeField] private HUDWeapon HUDWeapon;
+    public event Action<WeaponComponent> OnWeaponAdded = delegate { };
+
+    /// <summary>
+    /// Возвращает новое оружие
+    /// </summary>
+    public event Action<WeaponComponent> OnWeaponChanged = delegate { };
+
+    public event Action<IObservable> OnForceUnsubcribe = delegate { };
+
+    void Awake()
+    {
+        Weapons = new List<WeaponComponent>(MaxWeapons);
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -41,20 +54,13 @@ public class WeaponHolder : MonoBehaviour
         playerInventory = GetComponent<InventoryComponent>();
         if (playerInventory == null)
             throw new System.Exception("Инвентарь игрока не найден в WeaponHolder");
-
-        HUDWeapon.SetInventorySystem(playerInventory.InventorySystem);
-        Weapons = new List<WeaponComponent>(MaxWeapons);
+        
+        
 
         lockedWeaponIndex = 0;
         
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Weapons.Count != 0)
-            HUDWeapon.UpdateUI();
-    }
+    
 
     /// <summary>
     /// Добавление нового оружия
@@ -70,10 +76,13 @@ public class WeaponHolder : MonoBehaviour
         {
             swaped = true;
 
-            HUDWeapon.SetWeapon(newWeapon);
 
             lockedWeaponIndex = 0;
             Weapons.Add(newWeapon);
+
+            OnWeaponAdded(newWeapon);
+            OnWeaponChanged(newWeapon);
+
             return newWeapon;
         }
 
@@ -88,23 +97,26 @@ public class WeaponHolder : MonoBehaviour
             // Замена оружия
             swaped = true;
 
-            HUDWeapon.SetWeapon(newWeapon);
 
             Weapons[currentWeaponIndex] = newWeapon;
+            OnWeaponChanged(newWeapon);
+
             return newWeapon;
         }
 
         Weapons.Add(newWeapon);
+        OnWeaponAdded(newWeapon);
+
         return Weapons[currentWeaponIndex];
     }
 
     /// <summary>
-    /// Получение ссылки на оружие
+    /// Получение ссылки на оружие. Возвращает null, если нет оружия
     /// </summary>
     /// <param name="index">Индекс в списке оружия</param>
     /// <param name="changed">Сменилось ли оружие на новое</param>
     /// <returns></returns>
-    public WeaponComponent TakeWeapon(int index, out bool changed)
+    public WeaponComponent ChangeWeapon(int index, out bool changed)
     {
         changed = false;
 
@@ -131,9 +143,18 @@ public class WeaponHolder : MonoBehaviour
             currentWeaponIndex = index;
             changed = true;
 
-            HUDWeapon.SetWeapon(Weapons[index]);
+            OnWeaponChanged(Weapons[currentWeaponIndex]);
+
 
             return Weapons[index];
         }
+    }
+
+    public WeaponComponent GetCurrentWeapon()
+    {
+        if (Weapons.Count == 0)
+            return null;
+
+        return Weapons[currentWeaponIndex];
     }
 }

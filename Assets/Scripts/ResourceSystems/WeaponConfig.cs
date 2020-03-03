@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
+using WeaponSystem;
+
 namespace ResourceSystems
 {
     public class WeaponConfig
@@ -18,6 +20,6 @@ namespace ResourceSystems
         /// <summary>
         /// Редкость оружия
         /// </summary>
-        public string Rarity { get; set; }
+        public WeaponRarity Rarity { get; set; }
     }
 }

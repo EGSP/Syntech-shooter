@@ -14,9 +14,9 @@ public class DummyLifeComponent : LifeComponent
 
     private Material mat;
     private Material armourMat;
-    protected override void Start()
+    protected override void Awake()
     {
-        base.Start();
+        base.Awake();
         regenerationDelay = RegenerationDelay;
         mat = HealthBar.GetComponent<Renderer>().material;
         armourMat = ArmourBar.GetComponent<Renderer>().material;

@@ -67,8 +67,16 @@ public abstract class WeaponComponent : MonoBehaviour
     [SerializeField] protected WeaponSpringComponent   _springComponent;
     
     // Состояние оружия (Пустой магазин, Перезарядка, Готово)
-    public WeaponState State { get; set; }
+    public WeaponState State
+    {
+        get => state;
+        set
+        {
+            state = value;
 
+        }
+    }
+    private WeaponState state;
     // [0,1] - действует ли на данный момент отдача
     protected float recoilOpacity;
     // Начальная позиция
@@ -81,7 +89,11 @@ public abstract class WeaponComponent : MonoBehaviour
     public WeaponBarrelComponent BarrelComponent { get => _barrelComponent; protected set => _barrelComponent = value; }
     public WeaponTrunkComponent TrunkComponent { get => _trunkComponent; protected set => _trunkComponent = value; }
     public WeaponSpringComponent SpringComponent { get => _springComponent; protected set => _springComponent = value; }
-    
+
+    /// <summary>
+    /// Изменение состояния оружия
+    /// </summary>
+    public event Action<WeaponState> OnStateChanged = delegate { };
 
     protected virtual void Awake()
     {

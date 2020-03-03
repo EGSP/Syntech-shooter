@@ -9,6 +9,7 @@ public class MoveSystem
 {
     [Header("Transform")]
     public Transform Body;
+
     [Header("Smoothness")]
     [Range(0, 1)]
     [SerializeField] private float BodyLerp;
@@ -22,14 +23,19 @@ public class MoveSystem
     [Header("MoveSettings")]
     [SerializeField] private float HorizontalSpeed;
     [SerializeField] private float VerticalSpeed;
-    [SerializeField] private float MaxStepAngle; // Максимальный уголь подъёма
+    // Максимальный угол подъёма
+    [SerializeField] private float MaxStepAngle; 
     // Длинна при которой нельзя идти в сторону направления
     [SerializeField] private float DampLength;
-    [Range(0,1)] // Максимальное значение DotProduct при котором не будет ограничения по движению
+    [Range(0,1)]
+    // Максимальное значение DotProduct при котором не будет ограничения по движению
     [SerializeField] private float DampStep;
+
     [Space]
-    [SerializeField] private LayerMask layerMask; // Слой земли
-    [SerializeField] private float rayDist; // Дистанция пуска луча 
+    // Слой земли
+    [SerializeField] private LayerMask layerMask;
+    // Дистанция пуска луча 
+    [SerializeField] private float rayDist;
 
     private AreaState areaState;
     private MoveState moveState;
@@ -46,14 +52,16 @@ public class MoveSystem
         return true;
     }
 
-
-    // Update is called once per frame
+    
     public MoveSystemOutput Update(MoveSystemInput IN)
     {
+        // Новое вращение тела
+        newBodyRotation *= Quaternion.Euler(0, IN.rotationY, 0); 
+
         // Поворот тела
-        newBodyRotation *= Quaternion.Euler(0, IN.rotationY, 0); // Новое вращение тела
         Body.rotation = Quaternion.Lerp(Body.rotation, newBodyRotation, BodyLerp);
 
+        // Перемещение физического тела
         Move(IN.horizontalInput, IN.verticalInput, Body, IN.speedModifier);
 
         return new MoveSystemOutput()
@@ -158,7 +166,9 @@ public class MoveSystem
         }
     }
 
-    
+    /// <summary>
+    /// Длинна луча при которой нельзя идти в сторону направления
+    /// </summary>
     public float GetDampLength()
     {
         return DampLength;

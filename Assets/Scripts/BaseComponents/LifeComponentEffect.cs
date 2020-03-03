@@ -24,6 +24,17 @@ public abstract class LifeComponentEffect
         return;
     }
     
+    /// <summary>
+    /// Установка пробиваемости активной брони. Лучше использовать в крайних случаях
+    /// </summary>
+    /// <param name="armourPenetration">Будет ли пробита активная броня</param>
+    /// <returns></returns>
+    public LifeComponentEffect SetArmourPenetration(bool armourPenetration)
+    {
+        ArmourPenetration = armourPenetration;
+
+        return this;
+    }
 }
 
 

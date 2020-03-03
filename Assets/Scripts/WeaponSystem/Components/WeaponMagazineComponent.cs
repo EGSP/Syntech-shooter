@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 using DamageEffects;
-public class WeaponMagazineComponent : MonoBehaviour
+public class WeaponMagazineComponent : MonoBehaviour, IObservable
 {
     public WeaponMagazinePreset Preset;
    
@@ -37,7 +38,20 @@ public class WeaponMagazineComponent : MonoBehaviour
     // Общая вместимость магазина
     public int Capacity { get; private set; }
     // Текущее количество боеприпасов в магазине
-    public int Count { get; set; }
+    public int Count
+    {
+        get => count;
+        set
+        {
+            count = value;
+            OnCountChanged(count);
+        }
+    }
+    private int count;
+
+    public event Action<int> OnCountChanged = delegate { };
+
+    public event Action<IObservable> OnForceUnsubcribe = delegate { };
 
     public DamageBehaviour[] DamageBehaviours;
 
@@ -71,5 +85,13 @@ public class WeaponMagazineComponent : MonoBehaviour
     public void ResetCount()
     {
         Count = Capacity;
+    }
+
+    /// <summary>
+    /// Отсоединение компонента от магазина
+    /// </summary>
+    public void Unweld()
+    {
+        OnForceUnsubcribe(this);
     }
 }

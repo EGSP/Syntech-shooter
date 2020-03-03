@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -9,6 +10,8 @@ public class LifeComponent : MonoBehaviour
 {
     [SerializeField] private LifeComponentPreset Preset;
     [SerializeField] private ActiveArmourPreset ArmourPreset;
+
+    public event Action<float, float> OnHealthChanged = delegate { };
 
     public float MaxHealth { get; protected set; }
     public float Health {
@@ -21,6 +24,8 @@ public class LifeComponent : MonoBehaviour
             if (value > MaxHealth)
                 value = MaxHealth;
             health = value;
+
+            OnHealthChanged(health, MaxHealth);
         }
     }
     private float health;
@@ -42,7 +47,7 @@ public class LifeComponent : MonoBehaviour
     }
     
     // Start is called before the first frame update
-    protected virtual void Start()
+    protected virtual void Awake()
     {
         Constructor();
     }

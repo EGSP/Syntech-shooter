@@ -12,6 +12,8 @@ public class RegenerationEffect : LifeComponentEffect
         duration = Duration;
 
         regenValue = _regenValue;
+
+        ArmourPenetration = true;
     }
 
     private float EmmitTime;

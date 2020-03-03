@@ -15,6 +15,6 @@ public class PoisonGasField : MonoBehaviour
         var playerLifeComponent = other.GetComponent<PlayerLifeComponent>();
 
         if (playerLifeComponent != null)
-            playerLifeComponent.AddEffect(new PoisonGasEffect(EmmitionTime, Duration, PoisonValue));
+            playerLifeComponent.AddEffect(new PoisonGasEffect(EmmitionTime, Duration, PoisonValue).SetArmourPenetration(true));
     }
 }

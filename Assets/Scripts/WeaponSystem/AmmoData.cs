@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 [System.Serializable]
-public class AmmoData: IInventoryItem
+public class AmmoData: IInventoryItem, IObservable, IDisposable
 {
     public AmmoData(string _BulletID, int _Count)
     {
@@ -15,12 +15,29 @@ public class AmmoData: IInventoryItem
         Count = _Count;
     }
 
+    public event Action<IObservable> OnForceUnsubcribe = delegate { };
+
+    /// <summary>
+    /// Изменение количества боеприпасов
+    /// </summary>
+    public event Action<int> OnCountChanged = delegate { };
+
     public InventoryItemType ItemType { get; private set; }
 
     // Идентификатор боеприпаса
     public readonly string BulletID;
+
     // Количество хранимых боеприпасов
-    public int Count { get; private set; }
+    public int Count
+    {
+        get => count;
+        set
+        {
+            count = value;
+            OnCountChanged(count);
+        }
+    }
+    private int count;
 
     // Хранятся ли боеприпасы
     public bool IsEmpty
@@ -55,5 +72,11 @@ public class AmmoData: IInventoryItem
         return false;
     }
 
-    
+    /// <summary>
+    /// Уничтожение боеприпаса. Все подписчики будут отписаны
+    /// </summary>
+    public void Dispose()
+    {
+        OnForceUnsubcribe(this);
+    }
 }

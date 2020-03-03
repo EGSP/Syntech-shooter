@@ -1,7 +1,7 @@
 ManifestFileVersion: 0
-CRC: 2506533102
+CRC: 3687815006
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: filecontent/weapons/honey
+      Name: weapons/honey
       Dependencies: {}

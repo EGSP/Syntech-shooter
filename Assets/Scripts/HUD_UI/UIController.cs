@@ -22,7 +22,7 @@ public class UIController : MonoBehaviour
     public event PlayerNullHandler OnPlayerNull = delegate { };
 
     public delegate void UIUpdateHandler(float deltaTime);
-    public event UIUpdateHandler OnUpdate;
+    public event UIUpdateHandler OnUpdate = delegate { };
 
     [SerializeField] private PlayerControllerComponent playerController;
     public PlayerControllerComponent PlayerController
@@ -66,4 +66,24 @@ public class UIController : MonoBehaviour
             return;
         }
     }
+}
+
+public interface IPlayerObserver
+{
+    /// <summary>
+    /// Отписка от наблюдения над объектом
+    /// </summary>
+    /// <param name="observable"></param>
+    void Unsubscribe(IObservable observable);
+
+    /// <summary>
+    /// Изменение контроллера игрока
+    /// </summary>
+    /// <param name="playerControllerComponent">Новый контроллер, который не является null</param>
+    void ChangePlayerController(PlayerControllerComponent playerControllerComponent);
+
+    /// <summary>
+    /// Действия при пустом контроллере игрока
+    /// </summary>
+    void PlayerControllerNull();
 }

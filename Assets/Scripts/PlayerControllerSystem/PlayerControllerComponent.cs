@@ -1,5 +1,5 @@
 ﻿#pragma warning disable IDE0044 // Добавить модификатор "только для чтения"
-
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +7,9 @@ using UnityEngine;
 using System.Linq;
 
 [RequireComponent(typeof(PlayerInventoryComponent))]
-public class PlayerControllerComponent : MonoBehaviour
+[RequireComponent(typeof(PlayerLifeComponent))]
+[RequireComponent(typeof(WeaponHolder))]
+public class PlayerControllerComponent : MonoBehaviour, IObservable
 {
     [Header("Sensivity")]
     [SerializeField] private float mouseSensivityX;
@@ -27,7 +29,6 @@ public class PlayerControllerComponent : MonoBehaviour
 
 
     [Header("Weapons")]
-    [SerializeField] private WeaponHolder WeaponHolder;
     // Кнопка поднятия оружия
     [SerializeField] private KeyCode GetUpWeaponKey;
     // Кнопки смены оружия. Позиция в массиве влияет на индекс оружия
@@ -35,15 +36,26 @@ public class PlayerControllerComponent : MonoBehaviour
     // Время смены оружия
     [SerializeField] private float WeaponChangeTime;
 
-    /// <summary>
-    /// Текущее оружие
-    /// </summary>
-    private WeaponComponent CurrentWeapon;
 
     /// <summary>
     /// Инвентарь игрока
     /// </summary>
     public InventoryComponent InventoryComponent { get; private set; }
+
+    /// <summary>
+    /// Здоровье игрока
+    /// </summary>
+    public PlayerLifeComponent PlayerLifeComponent { get; private set; }
+
+    /// <summary>
+    /// Оружие игрока
+    /// </summary>
+    public WeaponHolder WeaponHolder { get; private set; }
+
+    /// <summary>
+    /// Текущее оружие
+    /// </summary>
+    private WeaponComponent CurrentWeapon;
 
     /// <summary>
     /// Включен ли контроллер
@@ -56,7 +68,35 @@ public class PlayerControllerComponent : MonoBehaviour
     private IEnumerator weaponChangeRoutine;
     private bool IsWeaponChanging;
 
- 
+    public event Action<IObservable> OnForceUnsubcribe = delegate { };
+
+    #region InputCaching
+    // Slope Input
+    private bool inputRight { get; set; }
+    private bool inputLeft { get; set; }
+
+    // Move Input
+    private float horizontalInput { get; set; }
+    private float verticalInput { get; set; }
+
+    // Mouse rotation Input
+    private float rotationY { get; set; }
+    private float rotationX { get; set; }
+
+    // Dash Input
+    private bool inputDash { get; set; }
+
+    // Fire Input
+    private bool inputFire { get; set; }
+
+    #endregion
+
+    void Awake()
+    {
+        InventoryComponent = GetComponent<InventoryComponent>();
+        PlayerLifeComponent = GetComponent<PlayerLifeComponent>();
+        WeaponHolder = GetComponent<WeaponHolder>();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -69,30 +109,52 @@ public class PlayerControllerComponent : MonoBehaviour
 
         DashSkill.Start();
 
-        InventoryComponent = GetComponent<InventoryComponent>();
+        WeaponHolder.OnWeaponChanged += ChangeWeapon;
+        
     }
 
-    // Update is called once per frame
+    // Здесь обновляется ввод
     void Update()
+    {
+        // Slope Input
+        inputRight = Input.GetKeyDown(KeyCode.E);
+        inputLeft = Input.GetKeyDown(KeyCode.Q);
+
+        // Move Input
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+        verticalInput = Input.GetAxisRaw("Vertical");
+
+        // Mouse rotation Input
+        rotationY = Input.GetAxis("Mouse X") * mouseSensivityX; // Вращение по горизонтали
+        rotationX = -Input.GetAxis("Mouse Y") * mouseSensivityY; // Вращение по вертикали
+
+        // DashSkill
+        inputDash = Input.GetKeyDown(KeyCode.Space);
+
+        // Fire Input
+        inputFire = Input.GetKey(KeyCode.Mouse0);
+
+        // Hide and lock cursor when right mouse button pressed
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        // Unlock and show cursor when right mouse button released
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+    }
+
+    // Здесь обновляются действия
+    void FixedUpdate()
     {
         if (IsControlActive == false)
             return;
 
         float deltaTime = Time.deltaTime;
-        
-        // Slope Input
-        bool inputRight = Input.GetKeyDown(KeyCode.E);
-        bool inputLeft = Input.GetKeyDown(KeyCode.Q);
-        // Move Input
-        float horizontalInput = Input.GetAxisRaw("Horizontal");
-        float verticalInput = Input.GetAxisRaw("Vertical");
-
-        // Mouse rotation Input
-        float rotationY = Input.GetAxis("Mouse X")*mouseSensivityX; // Вращение по горизонту
-        float rotationX = -Input.GetAxis("Mouse Y")*mouseSensivityY; // Вращение по вертикали
-
-        // DashSkill
-        bool inputDash = Input.GetKeyDown(KeyCode.Space); 
         
         // Use DashSkill
         #region DashSkill
@@ -120,36 +182,32 @@ public class PlayerControllerComponent : MonoBehaviour
             recoilopacity = 0
         };
 
-        // Если оружие не перезаряжается
+        // Если оружие не перезаряжается и не меняется
         if (!IsReloading && !IsWeaponChanging)
         {
+            // После этого цикла IsWeaponChanging может стать true
             for(var i = 0; i < ChangeWeaponKeys.Length; i++)
             {
                 // Если игрок решил сменить оружие
                 if (Input.GetKeyDown(ChangeWeaponKeys[i]))
                 {
                     bool changed;
-                    CurrentWeapon = WeaponHolder.TakeWeapon(i, out changed);
-
-                    // Смена оружия
-                    if (changed)
-                    {
-                        weaponChangeRoutine = WeaponChangeCoroutine();
-                        StartCoroutine(weaponChangeRoutine);
-                    }
+                    WeaponHolder.ChangeWeapon(i, out changed);
 
                     break;
                 }
             }
 
             // Если оружие не меняется
-            if (IsWeaponChanging == false)
+            if (!IsWeaponChanging)
             {
                 // Если оружие есть в руках
                 if (CurrentWeapon != null)
                 {
                     bool inputReload = Input.GetKeyDown(KeyCode.R);
                     var reloadNow = false;
+
+                    // Если нажата кнопка перезарядки
                     if (inputReload)
                     {
                         reloadNow = ReloadWeapon(InventoryComponent.InventorySystem);
@@ -202,20 +260,6 @@ public class PlayerControllerComponent : MonoBehaviour
             inputLeft = inputLeft,
             cameraLocalEulerAnglesX = cameraOutput.localEulerAngles.x
         });
-        
-        // Hide and lock cursor when right mouse button pressed
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
-        // Unlock and show cursor when right mouse button released
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-
     }
 
 
@@ -267,10 +311,26 @@ public class PlayerControllerComponent : MonoBehaviour
         IsReloading = false;
     }
 
-    private IEnumerator WeaponChangeCoroutine()
+    /// <summary>
+    /// Смена оружия в контроллере
+    /// </summary>
+    /// <param name="newWeapon">Новое оружие</param>
+    public void ChangeWeapon(WeaponComponent newWeapon)
     {
-        CurrentWeapon.StopShooting();
+        CurrentWeapon = newWeapon;
+
+        if (newWeapon != null)
+        {
+            weaponChangeRoutine = ChangeWeaponCoroutine();
+            StartCoroutine(weaponChangeRoutine);
+        }
+    }
+
+    private IEnumerator ChangeWeaponCoroutine()
+    {
         IsWeaponChanging = true;
+        CurrentWeapon.StopShooting();
+       
         yield return new WaitForSeconds(WeaponChangeTime);
 
         IsWeaponChanging = false;
@@ -316,4 +376,12 @@ public class PlayerControllerComponent : MonoBehaviour
         var relativePos = transform.position+MoveSystem.GetBodyBones().BodyCenterOffset;
         Gizmos.DrawLine(relativePos, relativePos +transform.forward * MoveSystem.GetDampLength());
     }
+}
+
+public interface IObservable
+{
+    /// <summary>
+    /// Событие при котором все подписчики должны отписаться
+    /// </summary>
+    event Action<IObservable> OnForceUnsubcribe;
 }
