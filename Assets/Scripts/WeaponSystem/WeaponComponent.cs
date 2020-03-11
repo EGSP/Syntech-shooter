@@ -6,6 +6,8 @@ using System;
 
 using System.Linq;
 
+using WeaponSystem;
+
 public abstract class WeaponComponent : MonoBehaviour
 {
     /// <summary>
@@ -18,6 +20,11 @@ public abstract class WeaponComponent : MonoBehaviour
     /// </summary>
     [Tooltip("Просто имя, ни на что не влияет")]
     public string Name;
+
+    /// <summary>
+    /// Редкость оружия
+    /// </summary>
+    public WeaponRarity Rarity;
 
     [SerializeField] protected Transform Trunk;
     
@@ -73,7 +80,7 @@ public abstract class WeaponComponent : MonoBehaviour
         set
         {
             state = value;
-
+            OnStateChanged(state);
         }
     }
     private WeaponState state;
@@ -212,6 +219,8 @@ public abstract class WeaponComponent : MonoBehaviour
     {
         recoilOpacity = 0;
         StopCoroutine(fireRoutine);
+
+        CheckMagazine();
     }
     
     /// <summary>
@@ -260,6 +269,11 @@ public abstract class WeaponComponent : MonoBehaviour
             WeldMagazine(mag);
         }
 
+    }
+
+    public void SetDefaultLocalPosition(Vector3 newDefaultLocalPos)
+    {
+        startPosition = newDefaultLocalPos;
     }
 
 }

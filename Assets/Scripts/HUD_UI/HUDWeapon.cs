@@ -12,11 +12,44 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
     [SerializeField] private TMP_Text AmmoText;
     [SerializeField] private TMP_Text MagazineAmmoText;
     [SerializeField] private TMP_Text WeaponStatusText;
+    [Space(10)]
+    [Header("Список оружия")]
+    [SerializeField] private RectTransform WeaponListParent;
+    [SerializeField] private UIWeaponBlock WeaponBlockPrefab;
+    [SerializeField] private CanvasGroup WeaponListAlpha;
+
+    /// <summary>
+    /// Время до старта затухания
+    /// </summary>
+    [SerializeField] private float VisibleTime;
+    
+    /// <summary>
+    /// Скорость затухания списка
+    /// </summary>
+    [SerializeField] private float FadeSpeed;
+
+    /// <summary>
+    /// Может ли начаться процесс затухания. 0 - нет, 1 - да
+    /// </summary>
+    private bool canFade;
+
+    private TimerCallbacker timerCallbacker;
 
 
     private StringBuilder AmmoTextBuilder;
     private StringBuilder WeaponStatusTextBuilder;
-    
+
+    private List<UIWeaponBlock> WeaponsList;
+
+    /// <summary>
+    /// Индекс текущего выбранного оружия
+    /// </summary>
+    private int selectedIndex;
+
+    /// <summary>
+    /// Держатель оружия игрока
+    /// </summary>
+    private WeaponHolder WeaponHolder;
 
     /// <summary>
     /// Текущее оружие игрока
@@ -40,6 +73,22 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
         AmmoTextBuilder = new StringBuilder();
         WeaponStatusTextBuilder = new StringBuilder();
 
+        WeaponsList = new List<UIWeaponBlock>();
+
+        // Настройка затухания
+        timerCallbacker = new TimerCallbacker(VisibleTime);
+        timerCallbacker.OnEmmitionEndCallback += () =>
+        {
+            canFade = true;
+        };
+
+        timerCallbacker.OnResetCallback += () =>
+        {
+            WeaponListAlpha.alpha = 1;
+            canFade = false;
+        };
+        
+
         MagazineUnsubscribe = (observable) =>
         {
             Weapon.MagazineComponent.OnCountChanged -= OnMagazineAmmoCountChanged;
@@ -50,7 +99,24 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
 
         UIController.Instance.OnPlayerNull += PlayerControllerNull;
     }
-    
+
+    private void Update()
+    {
+        if (canFade == true)
+        {
+            WeaponListAlpha.alpha -= FadeSpeed * Time.deltaTime;
+
+            if(WeaponListAlpha.alpha == 0)
+            {
+                canFade = false;
+            }
+        }
+        else
+        {
+            timerCallbacker.Update(Time.deltaTime);
+        }
+        
+    }
 
     /// <summary>
     /// Установка оружия для отрисовки в интерфейсе
@@ -75,8 +141,7 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
             if (Weapon == null)
             {
                 Weapon = weapon;
-
-                SubscribeToWeapon();
+                
             }
             else
             {
@@ -86,14 +151,18 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
             }
         }
 
+        SubscribeToWeapon();
     }
 
     private void SubscribeToWeapon()
     {
         Weapon.MagazineComponent.OnCountChanged += OnMagazineAmmoCountChanged;
+        OnMagazineAmmoCountChanged(Weapon.MagazineComponent.Count);
+
         Weapon.MagazineComponent.OnForceUnsubcribe += MagazineUnsubscribe;
 
         Weapon.OnStateChanged += DrawWeaponStatusText;
+        DrawWeaponStatusText(Weapon.State);
 
         // Установка WeaponUsedAmmo
         SetAmmo();
@@ -173,6 +242,11 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
 
             WeaponUsedAmmo.OnForceUnsubcribe += OnAmmoDispose;
             WeaponUsedAmmo.OnCountChanged += OnAmmoCountChanged;
+            OnAmmoCountChanged(WeaponUsedAmmo.Count);
+        }
+        else
+        {
+            OnAmmoCountChanged(0);
         }
     }
 
@@ -189,6 +263,59 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
         WeaponStatusText.text = state.ToString();
     }
 
+    private void SelectWeaponFromList(WeaponComponent selectedWeapon, WeaponInfo info)
+    {
+        WeaponsList[selectedIndex].Deselect();
+
+        selectedIndex = info.IndexInList;
+
+        var coincidence = WeaponsList[selectedIndex];
+
+        coincidence.Select();
+
+        // Отображение списка оружия
+        ShowWeaponList();
+    }
+
+    private void CreateWeaponBlock(WeaponComponent newWeapon, WeaponInfo info)
+    {
+        var instance = Instantiate(WeaponBlockPrefab, WeaponListParent, false);
+        
+        instance.WeaponName.text = newWeapon.Name;
+        instance.BlockNumber.text = (info.IndexInList + 1).ToString();
+
+        WeaponsList.Insert(info.IndexInList,instance);
+    }
+
+    private void DeleteWeaponBlock(WeaponComponent deletedWeapon)
+    {
+        // Находим блок оружия с таким же именем
+        var coincidence = WeaponsList.FirstOrDefault(x => x.WeaponName.text == deletedWeapon.Name);
+
+        if(coincidence != null)
+        {
+            WeaponsList.Remove(coincidence);
+            Destroy(coincidence.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// Показывает список оружия
+    /// </summary>
+    private void ShowWeaponList()
+    {
+        timerCallbacker.Reset();
+    }
+
+    /// <summary>
+    /// Показывает список оружия. Используется в событиях с аргументом
+    /// </summary>
+    /// <param name="weaponComponent">Аргумент события</param>
+    private void ShowWeaponList(WeaponComponent weaponComponent)
+    {
+        timerCallbacker.Reset();
+    }
+
     public void Unsubscribe(IObservable observable)
     {
         var pc = observable as PlayerControllerComponent;
@@ -203,6 +330,14 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
 
         inventory.OnAmmoAdded += OnInventoryAmmoAdd;
         weaponHolder.OnWeaponChanged += SetWeapon;
+        weaponHolder.OnWeaponChangedExtended += SelectWeaponFromList;
+
+        weaponHolder.OnWeaponAddedExtended += CreateWeaponBlock;
+        weaponHolder.OnWeaponAdded += ShowWeaponList;
+
+        weaponHolder.OnWeaponRemoved += DeleteWeaponBlock;
+
+        weaponHolder.OnWeaponChangeInitiated += ShowWeaponList;
 
         // Получаем текущее оружие и отрисовываем 
         var weapon = weaponHolder.GetCurrentWeapon();
@@ -211,6 +346,7 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
             SetWeapon(weapon);
         }
 
+        WeaponHolder = weaponHolder;
         InventorySystem = inventory;
     }
 

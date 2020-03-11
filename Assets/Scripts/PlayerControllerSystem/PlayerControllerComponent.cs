@@ -29,8 +29,7 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
 
 
     [Header("Weapons")]
-    // Кнопка поднятия оружия
-    [SerializeField] private KeyCode GetUpWeaponKey;
+   
     // Кнопки смены оружия. Позиция в массиве влияет на индекс оружия
     [SerializeField] private KeyCode[] ChangeWeaponKeys;
     // Время смены оружия
@@ -114,6 +113,26 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
     }
 
     // Здесь обновляется ввод
+    void LateUpdate()
+    {
+
+        
+
+        // Hide and lock cursor when right mouse button pressed
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        // Unlock and show cursor when right mouse button released
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+    }
+
+    // Здесь обновляются действия
     void Update()
     {
         // Slope Input
@@ -134,23 +153,6 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
         // Fire Input
         inputFire = Input.GetKey(KeyCode.Mouse0);
 
-        // Hide and lock cursor when right mouse button pressed
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
-        // Unlock and show cursor when right mouse button released
-        if (Input.GetKeyDown(KeyCode.U))
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-    }
-
-    // Здесь обновляются действия
-    void FixedUpdate()
-    {
         if (IsControlActive == false)
             return;
 
@@ -317,7 +319,15 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
     /// <param name="newWeapon">Новое оружие</param>
     public void ChangeWeapon(WeaponComponent newWeapon)
     {
+        if (IsWeaponChanging == true)
+            return;
+
+        if (CurrentWeapon != null)
+            CurrentWeapon.gameObject.SetActive(false);
+
         CurrentWeapon = newWeapon;
+
+        CurrentWeapon.gameObject.SetActive(true);
 
         if (newWeapon != null)
         {
@@ -333,7 +343,24 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
        
         yield return new WaitForSeconds(WeaponChangeTime);
 
+        var settings = CurrentWeapon.GetComponent<WeaponSettingsComponent>();
+        CurrentWeapon.gameObject.transform.parent = HandSystem.WeaponParent;
+
+        CurrentWeapon.SetDefaultLocalPosition(settings.DefaultPosition);
+        CurrentWeapon.transform.localPosition = settings.DefaultPosition;
+        CurrentWeapon.transform.localEulerAngles = settings.DefaultRotation;
+
         IsWeaponChanging = false;
+    }
+
+    /// <summary>
+    /// Выброс оружия на землю под игроком
+    /// </summary>
+    /// <param name="weapon">Выбрасываемоме оружие</param>
+    private void DropWeapon(WeaponComponent weapon)
+    {
+        weapon.transform.position = gameObject.transform.position;
+        weapon.transform.SetParent(null);
     }
 
     /// <summary>

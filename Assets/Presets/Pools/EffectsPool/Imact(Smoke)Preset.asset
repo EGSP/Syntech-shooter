@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Imact(Smoke)Preset
   m_EditorClassIdentifier: 
   ID: IS
-  Prefab: {fileID: 3145208280358270976, guid: a8c6f87866bb2c340a3ab7638fd2dbdc, type: 3}
+  Prefab: {fileID: -7858658301533337411, guid: a8c6f87866bb2c340a3ab7638fd2dbdc, type: 3}
   SpawnCount: 60

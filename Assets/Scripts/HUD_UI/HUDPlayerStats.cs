@@ -47,7 +47,7 @@ public class HUDPlayerStats : MonoBehaviour, IPlayerObserver
     {
         healthMaterial.SetFloat("_HealthOpacity", value / maxValue);
 
-        Health.text = value.ToString();
+        Health.text = value.ToString(0);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class HUDPlayerStats : MonoBehaviour, IPlayerObserver
     {
         armourMaterial.SetFloat("_HealthOpacity", value / maxValue);
 
-        Armour.text = value.ToString();
+        Armour.text = value.ToString(0);
     }
 
     public void ChangePlayerController(PlayerControllerComponent playerControllerComponent)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System;
 using System.Linq;
 
 
@@ -20,7 +21,11 @@ public class EffectManager : MonoBehaviour
     #endregion
     public List<EffectPreset> Presets;
     private Dictionary<string, CycleList<EffectObject>> PooledObjects;
-    
+
+    /// <summary>
+    /// Вызывается при обновлении кадра
+    /// </summary>
+    public Action<float> OnUpdate = delegate { };
 
     private void Start()
     {
@@ -55,6 +60,11 @@ public class EffectManager : MonoBehaviour
             // Добавляем в словарь заполненную очередь
             PooledObjects.Add(preset.ID, newIPooledObjects);
         }
+    }
+
+    private void Update()
+    {
+        OnUpdate(Time.deltaTime);
     }
 
     public EffectObject Take(string ID)

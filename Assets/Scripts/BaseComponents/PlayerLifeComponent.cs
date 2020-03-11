@@ -26,7 +26,10 @@ public class PlayerLifeComponent : LifeComponent
 
     public void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
+        if (enabled == false)
+            return;
+
+        Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position + CentreOffset, OverlapRadius);
     }
 }

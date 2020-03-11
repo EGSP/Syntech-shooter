@@ -7,24 +7,25 @@ using System.Linq;
 
 public class PoolManager : MonoBehaviour
 {
-    #region Singleton
+    
     public static PoolManager Instance;
-    private void Awake()
+    
+    
+    public List<PoolPreset> Presets;
+
+    /// <summary>
+    /// Объекты хранящиеся в пуле
+    /// </summary>
+    private Dictionary<string, Queue<PooledObject>> PooledObjects;
+
+    
+    void Awake()
     {
         if (Instance != null)
             throw new System.Exception("Попытка создания второго экземпляра PoolManager");
 
         Instance = this;
-    }
-    #endregion
 
-
-    public List<PoolPreset> Presets;
-    private Dictionary<string, Queue<PooledObject>> PooledObjects;
-
-    
-    void Start()
-    {
         // Создаём экземпляр словаря
         PooledObjects = new Dictionary<string, Queue<PooledObject>>();
 
@@ -48,6 +49,7 @@ public class PoolManager : MonoBehaviour
 
                 // Передаём ссылку на родительскую очередь
                 iPooledObject.InitializeByPool(newIPooledObjects);
+                iPooledObject.SetPoolID(preset.ID);
 
                 newIPooledObjects.Enqueue(iPooledObject);
             }
@@ -59,6 +61,10 @@ public class PoolManager : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Получение объекта из пула по идентификатору. Объекты изначально включены
+    /// </summary>
+    /// <param name="ID">Идентификатор объекта в пуле</param>
     public PooledObject Take(string ID)
     {
         if (!PooledObjects.ContainsKey(ID))
@@ -76,6 +82,8 @@ public class PoolManager : MonoBehaviour
                 var iPooledObject = Instantiate(preset.Prefab);
                 // Передаём ссылку на родительскую очередь
                 iPooledObject.InitializeByPool(queue);
+                iPooledObject.SetPoolID(ID);
+
                 queue.Enqueue(iPooledObject);
             }
         }
@@ -86,13 +94,38 @@ public class PoolManager : MonoBehaviour
 
         return obj;
     }
+
+    public Queue<PooledObject> GetParentQueue(string ID)
+    {
+        if (!PooledObjects.ContainsKey(ID))
+            throw new System.Exception("Вы пытаетесь получить очередь пула которой не существует: " + ID);
+
+        var queue = PooledObjects[ID];
+
+        return queue;
+    }
     
 }
 
 public abstract class PooledObject : MonoBehaviour
 {
+    [Tooltip("Идентификатор для нахождения этого объекта в пуле")]
+    [SerializeField] protected string PoolID;
+
+    /// <summary>
+    /// Требуется ли аходить пул самостоятельно
+    /// </summary>
+    [SerializeField] private bool FindPool;
+
     // Ссылка на родительский очередь, чтобы пул не искал нужную очередь, а брал ссылку из этого объекта
-    public Queue<PooledObject> ParentQueue { get; private set; }
+    public Queue<PooledObject> ParentQueue { get; protected set; }
+
+    protected virtual void Awake()
+    {
+        if (FindPool == true)
+            SetParentQueue(PoolManager.Instance.GetParentQueue(PoolID));
+    }
+
     /// <summary>
     /// Назначение родительского пула
     /// </summary>
@@ -103,7 +136,7 @@ public abstract class PooledObject : MonoBehaviour
     }
 
     /// <summary>
-    /// Вызывается самим объектом при необъодимости уничтожения
+    /// Вызывается самим объектом при необходимости уничтожения
     /// </summary>
     public virtual void InsertToPool()
     {
@@ -113,10 +146,28 @@ public abstract class PooledObject : MonoBehaviour
 
 
     /// <summary>
-    /// Вызывается из вне пулом при спавне
+    /// Вызывается из вне, пулом, при спавне
     /// </summary>
     public virtual void OnSpawnFromPool()
     {
         gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Установка родительской очереди пула
+    /// </summary>
+    /// <param name="parentQueue"></param>
+    protected void SetParentQueue(Queue<PooledObject> parentQueue)
+    {
+        ParentQueue = parentQueue;
+    }
+
+    /// <summary>
+    /// Установка ID в пуле. Нежелательно устанавливать вне пула
+    /// </summary>
+    /// <param name="poolID"></param>
+    public void SetPoolID(string poolID)
+    {
+        PoolID = poolID;
     }
 }

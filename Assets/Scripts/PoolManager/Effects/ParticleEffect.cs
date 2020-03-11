@@ -9,8 +9,7 @@ namespace EffectObjects
     {
         [Tooltip("Системы частиц, запускаемые при активации, автоматически заполняется при отсутствии элементов")]
         [SerializeField] private ParticleSystem[] Particles;
-
-
+        
         // Инициализация массива
         public override void Initialize()
         {
@@ -43,6 +42,7 @@ namespace EffectObjects
             transform.position = position;
             transform.rotation = Quaternion.LookRotation(normal);
             PlayEffect();
+            
         }
 
         // Переигрывает эффект
@@ -51,12 +51,14 @@ namespace EffectObjects
             IsFree = false;
             for (int i = 0; i < Particles.Length; i++)
             {
-                Particles[i].gameObject.SetActive(false);
-                Particles[i].Stop();
+                var particleSystem = Particles[i];
+                particleSystem.gameObject.SetActive(false);
+                particleSystem.Stop();
 
-                Particles[i].gameObject.SetActive(true);
-                Particles[i].Play();
+                particleSystem.gameObject.SetActive(true);
+                particleSystem.Play();
             }
+            
         }
 
         // Останавливает эффект
@@ -65,6 +67,7 @@ namespace EffectObjects
             IsFree = true;
             for (int i = 0; i < Particles.Length; i++)
             {
+                var particleSystem = Particles[i];
                 Particles[i].gameObject.SetActive(false);
                 Particles[i].Stop();
             }

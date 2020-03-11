@@ -28,4 +28,23 @@ public class Extensions
         
         return (a + b) / 2;
     }
+
+
+}
+
+/// <summary>
+/// Класс расширений для работы с интерфейсом
+/// </summary>
+public static class UIExtension
+{
+    /// <summary>
+    /// Самый эффективный способ округления числа и перевода его в строку
+    /// </summary>
+    /// <param name="f">Число</param>
+    /// <param name="digits">Количество знаков после запятой</param>
+    /// <returns></returns>
+    public static string ToString(this float f, int digits)
+    {
+        return System.Math.Round(f, digits).ToString();
+    }
 }

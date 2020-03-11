@@ -8,7 +8,7 @@ public class PlayerInventoryComponent : InventoryComponent
     public LayerMask AmmoLayer;
     public float OverlapRadius;
     public Vector3 CentreOffset;
-
+    
     // Start is called before the first frame update
     protected override void Awake()
     {
@@ -58,7 +58,10 @@ public class PlayerInventoryComponent : InventoryComponent
 
     public void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
+        if (enabled == false)
+            return;
+
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position + CentreOffset, OverlapRadius);
     }
 }

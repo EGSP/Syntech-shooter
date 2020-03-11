@@ -9,6 +9,7 @@ public class HandSystem
 {
     [Header("Transform")]
     public Transform Hands;
+    public Transform WeaponParent;
     [Space]
     [Header("Sensivity and Smoothness")]
     [SerializeField] private float handSensivityFactor;

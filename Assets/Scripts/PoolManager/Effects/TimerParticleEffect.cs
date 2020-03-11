@@ -8,37 +8,41 @@ using UnityEngine;
 
 namespace EffectObjects
 {
+    /// <summary>
+    /// Не рекомендуется использовать
+    /// </summary>
     public class TimerParticleEffect : ParticleEffect
     {
         /// <summary>
-        /// Время проигрывания эффекта
+        /// Время проигрывания эффекта, после которого он выключается
         /// </summary>
         [SerializeField] private float PlayTime;
 
-        private TimerCallbacker RemoveTimer;
+        private TimerCallbacker timerCallbacker;
 
         public override void Initialize()
         {
             base.Initialize();
 
-            RemoveTimer = new TimerCallbacker(PlayTime);
+            timerCallbacker = new TimerCallbacker(PlayTime);
+            EffectManager.Instance.OnUpdate += timerCallbacker.Update;
 
-            RemoveTimer.OnEmmitionEndCallback += () =>
-            {
-                StopEffect();
-            };
+            timerCallbacker.OnEmmitionEndCallback += StopEffect;
         }
-
-        public void Update()
-        {
-            RemoveTimer.Update(Time.deltaTime);
-        }
+        
 
         public override void PlayEffect()
         {
             base.PlayEffect();
 
-            RemoveTimer.Reset();
+            timerCallbacker.Reset();
+        }
+
+        public override void ResetEffect()
+        {
+            base.ResetEffect();
+
+            timerCallbacker.Reset();
         }
 
     }

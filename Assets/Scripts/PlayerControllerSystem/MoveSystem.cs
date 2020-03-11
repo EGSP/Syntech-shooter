@@ -56,10 +56,10 @@ public class MoveSystem
     public MoveSystemOutput Update(MoveSystemInput IN)
     {
         // Новое вращение тела
-        newBodyRotation *= Quaternion.Euler(0, IN.rotationY, 0); 
+        newBodyRotation *= Quaternion.Euler(0, IN.rotationY, 0);
 
         // Поворот тела
-        Body.rotation = Quaternion.Lerp(Body.rotation, newBodyRotation, BodyLerp);
+        rig.MoveRotation( Quaternion.Lerp(Body.rotation, newBodyRotation, BodyLerp));
 
         // Перемещение физического тела
         Move(IN.horizontalInput, IN.verticalInput, Body, IN.speedModifier);
@@ -137,7 +137,7 @@ public class MoveSystem
 
                     rig.position = new Vector3(rig.position.x, hit.point.y + BodyBones.CentreToGround, rig.position.z);
                     //rig.MovePosition(transform.position+forpl.normalized * velocity);
-                    rig.position += forpl.normalized * velocity;
+                    rig.MovePosition(rig.position + forpl.normalized * velocity);
 
                 }
                 else
