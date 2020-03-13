@@ -29,6 +29,15 @@ public class CurveAnimator
 
         return Curve.Evaluate(curvePoint);
     }
-    
+
+    /// <summary>
+    /// Переходит в начальное состояние
+    /// </summary>
+    public void Reset()
+    {
+        curvePoint = 0;
+        IsAnimating = false;
+    }
+
 
 }

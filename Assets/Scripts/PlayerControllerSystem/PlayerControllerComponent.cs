@@ -25,8 +25,8 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
     [SerializeField] private SlopeSystem SlopeSystem;
     [Space]
     [Header("Player Skills")]
-    [SerializeField] private DashSkill DashSkill;
-
+    [SerializeField] private DashSkill _DashSkill;
+    
 
     [Header("Weapons")]
    
@@ -87,6 +87,8 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
 
     // Fire Input
     private bool inputFire { get; set; }
+
+    public DashSkill DashSkill { get => _DashSkill; set => _DashSkill = value; }
 
     #endregion
 

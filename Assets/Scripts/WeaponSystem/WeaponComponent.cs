@@ -219,6 +219,7 @@ public abstract class WeaponComponent : MonoBehaviour
     {
         recoilOpacity = 0;
         StopCoroutine(fireRoutine);
+        RecoilAnimation.Reset();
 
         CheckMagazine();
     }

@@ -8,7 +8,7 @@ namespace DamageEffects
         public FireBehaviour(
             float _EmmitTime, float _Duration,
             float _EffectEmmitTime, float _EffectDurTime,
-            float _Radius, float _Damage, bool _IsParent)
+            float _Radius, float _Damage, bool _IsParent = true)
             : base(_EmmitTime, _Duration)
         {
             // ID == FireEffect.ID

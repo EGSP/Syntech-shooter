@@ -18,4 +18,10 @@ public class WeaponMagazinePreset: ScriptableObject
 
     [Space]
     public Image Icon;
+
+    /// <summary>
+    /// Пресеты модификатора урона
+    /// </summary>
+    [Space]
+    public List<DamageBehaviourPreset> DamageBehaviourPresets;
 }

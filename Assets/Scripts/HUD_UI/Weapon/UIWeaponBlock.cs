@@ -29,6 +29,11 @@ public class UIWeaponBlock : EventTrigger
     public TMP_Text BlockNumber;
 
     /// <summary>
+    /// Иконка оружия
+    /// </summary>
+    public Image WeaponIcon;
+
+    /// <summary>
     /// Выделение блока
     /// </summary>
     public void Select()

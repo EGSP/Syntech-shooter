@@ -21,11 +21,21 @@ public class GameManager : MonoBehaviour
         {
             ExecutionRoot = false
         });
-
         
-
         WorldSettings.Setup();
+
+        WeaponAssetManager.Initialize();
         
+    }
+
+    [SerializeField] private WeaponAssetManager weaponAssetManager;
+    public WeaponAssetManager WeaponAssetManager
+    {
+        get => weaponAssetManager;
+        private set
+        {
+            weaponAssetManager = value;
+        }
     }
 
     public LayerMask LifeLayerMask;

@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Linq;
+
 using DamageEffects;
 public class WeaponMagazineComponent : MonoBehaviour, IObservable
 {
@@ -16,18 +18,11 @@ public class WeaponMagazineComponent : MonoBehaviour, IObservable
 
         ReloadFactor = Preset.ReloadFactor;
 
-        DamageBehaviours = new DamageBehaviour[] {
-            //new FireBehaviour(_EmmitTime: 3, _Duration: 1.5f,
-            //_EffectEmmitTime: 3, _EffectDurTime: 1,
-            //_Radius: 3, _Damage: 10, _IsParent: true)
-
-            //new PlasmaBehaviour(_EffectEmmitTime: 3,_EffectDurTime: 0.15f,_Damage: 15)
-            //new AcidBehaviour(_Duration:0.2f,_Damage:3,_SpeedModifier:0.3f,_ModifierTime:1)
-            //new ShockBehaviour(3)
-            //new GrowingBehaviour(5,20)
-            //new HEIBehaviour(5,3)
-            new CumulativeBehaviour(5,3)
-        };
+        // Установка модификаторов урона
+        for(int i = 0; i < Preset.DamageBehaviourPresets.Count; i++)
+        {
+            AddDamageBehaviour(Preset.DamageBehaviourPresets[i].GetDamageBehaviour());
+        }
     }
 
     // Идентификатор пули
@@ -35,9 +30,14 @@ public class WeaponMagazineComponent : MonoBehaviour, IObservable
     // Модификатор изменения времени перезарядки
     public float ReloadFactor { get; private set; }
 
-    // Общая вместимость магазина
+    /// <summary>
+    /// Вместимость боеприпасов в магазине
+    /// </summary>
     public int Capacity { get; private set; }
-    // Текущее количество боеприпасов в магазине
+    
+    /// <summary>
+    /// Количество боеприпасов в магазине
+    /// </summary>
     public int Count
     {
         get => count;
@@ -49,11 +49,17 @@ public class WeaponMagazineComponent : MonoBehaviour, IObservable
     }
     private int count;
 
+    /// <summary>
+    /// Вызывается при изменении количества боеприпасов в магазине
+    /// </summary>
     public event Action<int> OnCountChanged = delegate { };
 
     public event Action<IObservable> OnForceUnsubcribe = delegate { };
 
-    public DamageBehaviour[] DamageBehaviours;
+    /// <summary>
+    /// Список модификаторов урона
+    /// </summary>
+    public List<DamageBehaviour> DamageBehaviours { get; private set; }
 
     /// <summary>
     /// Недостающее количество боеприпасов
@@ -93,5 +99,39 @@ public class WeaponMagazineComponent : MonoBehaviour, IObservable
     public void Unweld()
     {
         OnForceUnsubcribe(this);
+    }
+
+    /// <summary>
+    /// Добавление модификатора урона
+    /// </summary>
+    /// <param name="damageBehaviour">Новый модификатор урона</param>
+    public void AddDamageBehaviour(DamageBehaviour damageBehaviour)
+    {
+        var coincidence = DamageBehaviours.FindIndex(x => x.ID == damageBehaviour.ID);
+
+        // Если не было найдено совпадений
+        if(coincidence == -1)
+        {
+            DamageBehaviours.Add(damageBehaviour);
+        }
+        else
+        {
+            // Происходит замена на новый модификатор этого же типа
+            DamageBehaviours[coincidence] = damageBehaviour;
+        }
+    }
+
+    /// <summary>
+    /// Удаление из списка модификатора урона
+    /// </summary>
+    /// <param name="behaviourID">Идентификатор модификатора урона</param>
+    public void RemoveDamageBehaviour(int behaviourID)
+    {
+        var coincidence = DamageBehaviours.FindIndex(x => x.ID == behaviourID);
+
+        if (coincidence > -1)
+        {
+            DamageBehaviours.RemoveAt(coincidence);
+        }
     }
 }

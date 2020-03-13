@@ -86,7 +86,7 @@ public class AutoRifleWeapon : WeaponComponent
                 }
 
                 // Эффекты урона магазина
-                for (int i = 0; i < MagazineComponent.DamageBehaviours.Length; i++)
+                for (int i = 0; i < MagazineComponent.DamageBehaviours.Count; i++)
                 {
                     var beh = MagazineComponent.DamageBehaviours[i].Clone();
 

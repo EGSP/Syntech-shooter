@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using System.Linq;
+using System.Text;
 
 
 [RequireComponent(typeof(InventoryComponent))]
-public class WeaponHolder : MonoBehaviour, IObservable
+public class WeaponHolder : MonoBehaviour, IObservable, IMessageSender
 {
     /// <summary>
     /// Максимальное количество слотов под оружие
@@ -28,6 +29,11 @@ public class WeaponHolder : MonoBehaviour, IObservable
     /// Кнопка поднятия оружия
     /// </summary>
     [SerializeField] private KeyCode GetUpWeaponKey;
+
+    /// <summary>
+    /// Цвет выделаяемого текста
+    /// </summary>
+    [SerializeField] private Color HighlightTextColor;
     
 
 
@@ -35,7 +41,7 @@ public class WeaponHolder : MonoBehaviour, IObservable
     /// Список оружия
     /// </summary>
     public List<WeaponComponent> Weapons { get; private set; }
-
+    
     /// <summary>
     /// Текущий индекс оружия в списке
     /// </summary>
@@ -81,6 +87,11 @@ public class WeaponHolder : MonoBehaviour, IObservable
 
     public event Action<IObservable> OnForceUnsubcribe = delegate { };
 
+    /// <summary>
+    /// Возвращает сообщение
+    /// </summary>
+    public event Action<string> OnMessageSend = delegate { };
+
     private List<WeaponCapsule> weaponCapsulesAround;
 
     /// <summary>
@@ -88,10 +99,13 @@ public class WeaponHolder : MonoBehaviour, IObservable
     /// </summary>
     private WeaponInfo weaponInfo;
 
+    private StringBuilder messageBuilder;
+
     void Awake()
     {
         Weapons = new List<WeaponComponent>(MaxWeapons);
         weaponInfo = new WeaponInfo();
+        messageBuilder = new StringBuilder(70);
 
         weaponCapsulesAround = new List<WeaponCapsule>(5);
     }
@@ -133,14 +147,50 @@ public class WeaponHolder : MonoBehaviour, IObservable
 
             OnWeaponAroundChecked(orderedWeaponsAround);
 
+            var firstElement = orderedWeaponsAround.First();
+           
+            // Отправка сообщения UI
+            var message = CreateMessageText(firstElement.ReadWeapon().Name);
+
+            OnMessageSend(message);
+
             // Если игрок нажал кнопку подбора оружия
             if (Input.GetKeyDown(GetUpWeaponKey))
             {
-                AddWeapon(orderedWeaponsAround.First());
+                AddWeapon(firstElement);
             }
+        }
+        else
+        {
+            OnMessageSend("");
         }
     }
 
+    /// <summary>
+    /// Возвращает текст сообщения для UI
+    /// </summary>
+    private string CreateMessageText(string weaponName)
+    {
+        messageBuilder.Clear();
+
+        var colorCode = ColorUtility.ToHtmlStringRGBA(HighlightTextColor);
+
+        messageBuilder.Append("Press <color=#");
+        messageBuilder.Append(colorCode);
+        messageBuilder.Append(">");
+        messageBuilder.Append(GetUpWeaponKey.ToString());
+        messageBuilder.Append("</color>");
+
+        messageBuilder.Append(" to take ");
+
+        messageBuilder.Append("<color=#");
+        messageBuilder.Append(colorCode);
+        messageBuilder.Append(">");
+        messageBuilder.Append(weaponName);
+        messageBuilder.Append("</color>");
+
+        return messageBuilder.ToString();
+    }
 
     /// <summary>
     /// Добавление нового оружия

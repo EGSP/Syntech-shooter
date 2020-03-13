@@ -3,39 +3,131 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System;
+
 [System.Serializable]
 public class DashSkill
 {
+    /// <summary>
+    /// Состояние в котором находится способность
+    /// </summary>
+    public enum SkillState
+    {
+        Done,
+        Active,
+        Reloading
+    }
+
+    /// <summary>
+    /// Время действия рывка
+    /// </summary>
     [Range(0,5)]
-    [SerializeField] private float LifeTime;
-    [SerializeField] private AnimationCurve SpeedModifierOverLifetime;
-    [SerializeField] private AnimationCurve RotationYOverLifetime;
+    [SerializeField] private float UseTimeLength;
     
+    /// <summary>
+    /// Время перезарядки способности
+    /// </summary>
+    [SerializeField] private float reloadTime;
+    public float ReloadTime {
+        get => reloadTime;
+        private set
+        {
+            reloadTime = value;
+        }
+    }
+
+    /// <summary>
+    /// Модификатор скорости
+    /// </summary>
+    [SerializeField] private AnimationCurve SpeedModifierOverLifetime;
+
+    /// <summary>
+    /// Модификатор вращения по оси Y
+    /// </summary>
+    [SerializeField] private AnimationCurve RotationYOverLifetime;
+
+    /// <summary>
+    /// Текущее состояние способности
+    /// </summary>
+    public SkillState skillState
+    {
+        get => _skillState;
+        private set
+        {
+            _skillState = value;
+            OnSkillStateChanged(_skillState);
+        }
+    }
+    private SkillState _skillState;
     
     public bool Active { get; private set; }
     
     // Dash start keyinput
     private Vector2 dashInput;
-    private float lifeTime;
+
+    private float useTimeLength;
+
+    /// <summary>
+    /// Текущее время перезарядки
+    /// </summary>
+    public float CurrentReloadTime
+    {
+        get => currentReloadTime;
+        set
+        {
+            currentReloadTime = value;
+            OnReloadValueChanged(currentReloadTime, ReloadTime);
+        }
+    }
+    private float currentReloadTime;
+
+    /// <summary>
+    /// Вызывается при изменение значения перезарядки способности
+    /// </summary>
+    public Action<float, float> OnReloadValueChanged = delegate { };
+
+    /// <summary>
+    /// Вызывается при изменении состояния способности
+    /// </summary>
+    public Action<SkillState> OnSkillStateChanged = delegate { };
 
     public void Start()
     {
-        lifeTime = LifeTime;
+        useTimeLength = UseTimeLength;
+        currentReloadTime = ReloadTime;
+
+        skillState = SkillState.Done;
     }
 
     public DashOutput Update(float deltaTime)
     {
-        if (Active == false)
-            return new DashOutput(true);
-
-        lifeTime -= deltaTime;
-        if (lifeTime < 0)
+        // Если идет перезарядка
+        if(skillState == SkillState.Reloading)
         {
-            lifeTime = 0;
-            Active = false;
+            CurrentReloadTime -= Time.deltaTime;
+
+            // Если перезарядка закончилась
+            if (CurrentReloadTime < 0)
+            {
+                CurrentReloadTime = ReloadTime;
+                skillState = SkillState.Done;
+            }
+
+            return new DashOutput(true);
         }
 
-        var evaluate = 1 - lifeTime / LifeTime;
+        // Если способность доступна, но не активирована
+        if (skillState == SkillState.Done)
+            return new DashOutput(true);
+
+        useTimeLength -= deltaTime;
+        if (useTimeLength < 0)
+        {
+            useTimeLength = 0;
+            skillState = SkillState.Reloading;
+        }
+
+        var evaluate = 1 - useTimeLength / UseTimeLength;
         // Moving
         var modifier = SpeedModifierOverLifetime.Evaluate(evaluate);
 
@@ -58,10 +150,10 @@ public class DashSkill
     public void Use(float h,float v)
     {
         // Если скилл закончился
-        if (Active == false)
+        if (skillState == SkillState.Done)
         {
-            Active = true;
-            lifeTime = LifeTime;
+            skillState = SkillState.Active;
+            useTimeLength = UseTimeLength;
             dashInput = new Vector2(h, v);
         }
     }
@@ -93,3 +185,5 @@ public struct DashOutput
     public float rotationXModifier;
     public float rotationYModifier;
 }
+
+

@@ -21,9 +21,6 @@ namespace DamageEffects
             Damage = _Damage;
             
         }
-
-        // Радиус распрстранения эффекта
-        private float Radius;
         // Урон наносимый эффектом
         private float Damage;
 

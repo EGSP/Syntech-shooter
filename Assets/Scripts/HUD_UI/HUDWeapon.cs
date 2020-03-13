@@ -283,6 +283,7 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
         
         instance.WeaponName.text = newWeapon.Name;
         instance.BlockNumber.text = (info.IndexInList + 1).ToString();
+        instance.WeaponIcon.sprite = GameManager.Instance.WeaponAssetManager.GetWeaponBundleByID(newWeapon.ID).weaponSprite;
 
         WeaponsList.Insert(info.IndexInList,instance);
     }
