@@ -5,6 +5,8 @@ public class PoisonGasEffect : LifeComponentEffect
     {
         ID = 100;
 
+        AddThroughArmour = true;
+
         EmmitTime = _EmmitTime;
         emmitTime = EmmitTime;
 

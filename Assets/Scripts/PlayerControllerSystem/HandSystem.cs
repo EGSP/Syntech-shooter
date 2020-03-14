@@ -47,12 +47,14 @@ public class HandSystem
     // Update is called once per frame
     public HandSystemOutput Update(HandSystemInput IN)
     {
-        Vector2 AbsRotationXY = new Vector2(Mathf.Abs(IN.rotationX), Mathf.Abs(IN.rotationY));
+        
 
         // Угол поворота отдачи со знаком противополжным повороту по Оси N
         var recoilX = IN.weaponRecoil * (1 - WeaponRecoilResistance) * (-1) * Time.deltaTime;
         var recoilY = IN.weaponRecoil * (1 - WeaponRecoilResistance)*(-1) * Time.deltaTime;
-        
+
+        Vector2 AbsRotationXY = new Vector2(Mathf.Abs(IN.rotationX), Mathf.Abs(IN.rotationY));
+
         // Поворот рук относительно 
         var handsCentralizeFactorXY = Vector2.Max(Vector2.zero, new Vector2(HandsCentrallizeLerp, HandsCentrallizeLerp) - AbsRotationXY); // Коэфицент возврата к рукам
         handsRotation += new Vector2(

@@ -12,7 +12,6 @@ public class AcidEffect : DurationEffect
         Damage.armourModifier = 1f;
         Damage.baseDamage = _Damage;
         
-
         SpeedModifier = _SpeedModifier;
         ModifierTime = _ModifierTime;
     }

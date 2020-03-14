@@ -77,7 +77,7 @@ public class InventorySystem: IObservable
                 if (Inventory[InventoryItemType.SpareParts].Count > MaxSlots[1])
                     break;
 
-                Inventory[InventoryItemType.Detail].Add(item);
+                Inventory[InventoryItemType.SpareParts].Add(item);
                 OnSparePartsAdded(item);
                 break;
 
@@ -85,7 +85,7 @@ public class InventorySystem: IObservable
                 if (Inventory[InventoryItemType.Ammo].Count > MaxSlots[2])
                     break;
 
-                Inventory[InventoryItemType.Detail].Add(item);
+                Inventory[InventoryItemType.Ammo].Add(item);
                 OnAmmoAdded(item);
                 break;
 
@@ -93,7 +93,7 @@ public class InventorySystem: IObservable
                 if (Inventory[InventoryItemType.WeaponModules].Count > MaxSlots[3])
                     break;
 
-                Inventory[InventoryItemType.Detail].Add(item);
+                Inventory[InventoryItemType.WeaponModules].Add(item);
                 OnWeaponModulesAdded(item);
                 break;
         }

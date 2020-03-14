@@ -49,7 +49,8 @@ namespace DamageEffects
             // Добавляем эффект возгорания на все компоненты
             for(int i = 0; i < components.Count; i++)
             {
-                components[i].AddEffect(new FireEffect(EffectEmmitTime, EffectDurTime, Damage));
+                if (components[i].ActiveArmour.IsActive == false)
+                    components[i].AddEffect(new FireEffect(EffectEmmitTime, EffectDurTime, Damage));
             }
         }
 
@@ -76,11 +77,9 @@ namespace DamageEffects
             // Находим LifeComponent объекты и распространяем на них огонь
             var colls = Physics.OverlapSphere(Carrier.transform.position, Radius, LifeLayerMask);
 
-            Debug.Log(colls.Length);
             for (int i = 0; i < colls.Length; i++)
             {
                 var coll = colls[i];
-                Debug.Log(coll.name);
 
                 var lifeComponent = coll.GetComponent<LifeComponent>();
 

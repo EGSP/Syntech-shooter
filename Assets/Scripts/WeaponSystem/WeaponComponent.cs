@@ -40,6 +40,10 @@ public abstract class WeaponComponent : MonoBehaviour
     // Количество рук при использовании оружия
     [SerializeField] protected bool _twoHanded;
     [SerializeField] protected float RecoilForce;
+    /// <summary>
+    /// Время действия отдачи. Не влияет на функциональность оружия
+    /// </summary>
+    [SerializeField] protected float RecoilEffectTime;
 
     
     // Максимальное количество шагов пробития
@@ -53,6 +57,16 @@ public abstract class WeaponComponent : MonoBehaviour
     [SerializeField] protected float RecoilOpacityIncrease;
     [Range(0, 10)] // Как быстро будет проходить отдача
     [SerializeField] protected float RecoilOpacityDecrease;
+    [Range(0,1)]
+    [SerializeField] protected float RecoilOpacityLerp;
+    /// <summary>
+    /// Дистанция смещения оружия в зависимости от opacity. Суммируется с recoilAnimation
+    /// </summary>
+    [SerializeField] protected float RecoilOpacityOffsetZ;
+    /// <summary>
+    /// Угол поворота в зависимости от opacity
+    /// </summary>
+    [SerializeField] protected float RecoilOpacityRotationZ;
     [Space]
     [SerializeField] protected CurveAnimator RecoilAnimation;
     [Range(0, 1)]
@@ -72,6 +86,11 @@ public abstract class WeaponComponent : MonoBehaviour
     [SerializeField] protected WeaponBarrelComponent   _barrelComponent;
     [SerializeField] protected WeaponTrunkComponent    _trunkComponent;
     [SerializeField] protected WeaponSpringComponent   _springComponent;
+
+    /// <summary>
+    /// Вызывается в начале выстрела
+    /// </summary>
+    public Action OnFireStarted = delegate { };
     
     // Состояние оружия (Пустой магазин, Перезарядка, Готово)
     public WeaponState State
@@ -85,9 +104,19 @@ public abstract class WeaponComponent : MonoBehaviour
     }
     private WeaponState state;
     // [0,1] - действует ли на данный момент отдача
-    protected float recoilOpacity;
+    protected float recoilOpacityUnlerped;
+    protected float recoilOpacityLerped;
     // Начальная позиция
     protected Vector3 startPosition;
+
+    // Начальное вращение
+    protected Quaternion startRotation;
+
+    /// <summary>
+    /// Действует ли эффект отдачи. 0-1
+    /// </summary>
+    protected int recoilEffectActive;
+    protected TimerCallbacker recoilEffectCallbacker;
     
     protected IEnumerator fireRoutine;
 
@@ -107,26 +136,47 @@ public abstract class WeaponComponent : MonoBehaviour
         CheckComponents();
 
         startPosition = transform.localPosition;
+        startRotation = transform.localRotation;
 
         fireRoutine = FireCoroutine();
+
+        recoilEffectCallbacker = new TimerCallbacker(RecoilEffectTime);
+        recoilEffectCallbacker.OnEmmitionEndCallback += () => recoilEffectActive = 0;
+        recoilEffectCallbacker.OnResetCallback += () => recoilEffectActive = 1;
     }
 
     public abstract WeaponUpdateOutput UpdateComponent(WeaponUpdateInput input);
 
-    // Активация стрельбы
-    protected abstract void Fire();
+    /// <summary>
+    /// Активация стрельбы. Возвращает bool: произошел выстрел или нет
+    /// </summary>
+    /// <returns></returns>
+    protected abstract bool Fire();
 
     protected abstract IEnumerator FireCoroutine();
 
+    /// <summary>
+    /// Анимация смещения оружия
+    /// </summary>
     protected void AnimateRecoil()
     {
-        float offsetZ = 0;
+        float curveValue = 0;
         if (RecoilAnimation.IsAnimating)
         {
-            offsetZ = RecoilAnimation.UpdateCurve(Time.deltaTime);
-
-            transform.localPosition = startPosition - new Vector3(0, 0, offsetZ * ReacoilAnimationIntensity);
+           curveValue = RecoilAnimation.UpdateCurve(Time.deltaTime);
+            
         }
+        
+        transform.localPosition = startPosition - new Vector3(
+                0,
+                0,
+                curveValue * ReacoilAnimationIntensity + RecoilOpacityOffsetZ * recoilOpacityLerped);
+
+        transform.localRotation = startRotation * Quaternion.Euler(0, 0, curveValue * RecoilOpacityRotationZ);
+        //transform.RotateAround(
+        //    new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z ),
+        //    transform.forward,
+        //    RecoilOpacityRotationZ * recoilOpacityLerped);
     }
 
     /// <summary>
@@ -136,7 +186,7 @@ public abstract class WeaponComponent : MonoBehaviour
     /// <param name="impactDirection">Направление, по которому направлен луч выстрела</param>
     /// <param name="output">Точки выхода, пробитие с обратной стороны пробиваемого объекта</param>
     /// <returns></returns>
-    protected List<RaycastHit> ComputePenetration(RaycastHit[] hits, Vector3 impactDirection, out List<Vector3> output)
+    protected List<RaycastHit> ComputePenetration(IOrderedEnumerable<RaycastHit> hits, Vector3 impactDirection, out List<Vector3> output)
     {
         output = new List<Vector3>();
 
@@ -149,10 +199,10 @@ public abstract class WeaponComponent : MonoBehaviour
         var pLength = GameManager.Instance.PenetrationStepLength;
         var pColl = GameManager.Instance.PenetrationCollider;
 
+        var count = hits.Count();
         // Проходимся по всем препятствиям
-        for (int i = 0; i < hits.Length; i++)
+        foreach (var hit in hits)
         {
-            var hit = hits[i];
             impactPoints.Add(hit);
 
             // Если больше нельзя ничего пробить
@@ -161,8 +211,9 @@ public abstract class WeaponComponent : MonoBehaviour
 
             // Расчитываем пробитие
             // j - количество затраченных шагов для пробития
-            for (int j = 1; steps > 0; steps--,j++)
+            for (int j = 1; steps > 0; j++)
             {
+                steps--;
                 // Позиция выхода пробития
                 var penetrationExit = hit.point + impactDirection * pLength * j;
 
@@ -190,9 +241,9 @@ public abstract class WeaponComponent : MonoBehaviour
     /// Сортировка точек луча по дистанции 
     /// </summary>
     /// <param name="raycastHits">Точки попадания</param>
-    protected void OrderRaycastHits(ref RaycastHit[] raycastHits)
+    protected IOrderedEnumerable<RaycastHit> OrderRaycastHits(ref RaycastHit[] raycastHits)
     {
-        raycastHits.OrderBy(x => x.distance);
+        return raycastHits.OrderBy(x => x.distance);
     }
 
     /// <summary>
@@ -217,7 +268,8 @@ public abstract class WeaponComponent : MonoBehaviour
 
     public virtual void StopShooting()
     {
-        recoilOpacity = 0;
+        recoilOpacityUnlerped = 0;
+        recoilOpacityLerped = 0;
         StopCoroutine(fireRoutine);
         RecoilAnimation.Reset();
 
@@ -275,6 +327,11 @@ public abstract class WeaponComponent : MonoBehaviour
     public void SetDefaultLocalPosition(Vector3 newDefaultLocalPos)
     {
         startPosition = newDefaultLocalPos;
+    }
+
+    public void SetDefaultLocalRotation(Quaternion newDefaultLocalRotation)
+    {
+        startRotation = newDefaultLocalRotation;
     }
 
 }

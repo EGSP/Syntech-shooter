@@ -7,27 +7,43 @@ public class CurveAnimator
     [SerializeField] private AnimationCurve Curve; // Значение смещения при отдаче
 
     public bool IsAnimating { get; private set; } // Действует ли сейчас анимация
-    private float curvePoint; // Текущая позиция по оси Х 
+    public float CurvePoint { get; private set; } // Текущая позиция по оси Х 
 
     private float playTime; // Время за которое нужно проиграть анимацию
+
+    /// <summary>
+    /// Скорость проигрывания анимации
+    /// </summary>
+    private float playSpeed;
 
     public void Play(float _playTime)
     {
         playTime = _playTime;
-        curvePoint = 0;
+        CurvePoint = 0;
         IsAnimating = true;
+
+        playSpeed = 1 / playTime;
     }
 
     public float UpdateCurve(float deltaTime)
     {
-        curvePoint += (deltaTime / playTime);
+        CurvePoint += playSpeed * deltaTime;
 
-        if(curvePoint >= 1)
+        if(CurvePoint >= 1)
         {
             IsAnimating = false;
         }
 
-        return Curve.Evaluate(curvePoint);
+        return Curve.Evaluate(CurvePoint);
+    }
+
+    /// <summary>
+    /// Получение числа по точке
+    /// </summary>
+    /// <param name="point">Точка на кривой</param>
+    public float GetCurveValue(float point)
+    {
+        return Curve.Evaluate(point);
     }
 
     /// <summary>
@@ -35,7 +51,7 @@ public class CurveAnimator
     /// </summary>
     public void Reset()
     {
-        curvePoint = 0;
+        CurvePoint = 0;
         IsAnimating = false;
     }
 

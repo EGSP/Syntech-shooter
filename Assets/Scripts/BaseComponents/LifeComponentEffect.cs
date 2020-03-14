@@ -6,11 +6,8 @@ using UnityEngine;
 public abstract class LifeComponentEffect
 {
     public int ID { get; protected set; }
-
-    /// <summary>
-    /// Проходимость сквозь активную броню
-    /// </summary>
-    public bool ArmourPenetration {get; protected set;}
+    
+    public bool AddThroughArmour { get; protected set; }
 
     // Возвращаемый эффект. Если эффект закончился, то вернётся null
     public abstract LifeComponentEffect Invoke(LifeComponent component, float deltaTime);
@@ -24,17 +21,6 @@ public abstract class LifeComponentEffect
         return;
     }
     
-    /// <summary>
-    /// Установка пробиваемости активной брони. Лучше использовать в крайних случаях
-    /// </summary>
-    /// <param name="armourPenetration">Будет ли пробита активная броня</param>
-    /// <returns></returns>
-    public LifeComponentEffect SetArmourPenetration(bool armourPenetration)
-    {
-        ArmourPenetration = armourPenetration;
-
-        return this;
-    }
 }
 
 

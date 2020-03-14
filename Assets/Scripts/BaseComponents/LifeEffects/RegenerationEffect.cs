@@ -13,7 +13,7 @@ public class RegenerationEffect : LifeComponentEffect
 
         regenValue = _regenValue;
 
-        ArmourPenetration = true;
+        AddThroughArmour = true;
     }
 
     private float EmmitTime;

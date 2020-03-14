@@ -12,6 +12,7 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
     [SerializeField] private TMP_Text AmmoText;
     [SerializeField] private TMP_Text MagazineAmmoText;
     [SerializeField] private TMP_Text WeaponStatusText;
+    [SerializeField] private Image WeaponIcon;
     [Space(10)]
     [Header("Список оружия")]
     [SerializeField] private RectTransform WeaponListParent;
@@ -205,6 +206,8 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
 
                 WeaponUsedAmmo.OnForceUnsubcribe += OnAmmoDispose;
                 WeaponUsedAmmo.OnCountChanged += OnAmmoCountChanged;
+
+                OnAmmoCountChanged(ammodata.Count);
             }
         }
     }
@@ -275,6 +278,9 @@ public class HUDWeapon : MonoBehaviour, IPlayerObserver
 
         // Отображение списка оружия
         ShowWeaponList();
+
+        // Так как иконка оружия уже есть в списке, то мы ее устанавливаем из полученного блока
+        WeaponIcon.sprite = coincidence.WeaponIcon.sprite;
     }
 
     private void CreateWeaponBlock(WeaponComponent newWeapon, WeaponInfo info)

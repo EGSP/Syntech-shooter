@@ -95,17 +95,12 @@ public class LifeComponent : MonoBehaviour
     // Получение урона
     public virtual void Hurt(DamageData damageData)
     {
-        // Нанесение урона сквозь броню
-        if (currentEffect != null && currentEffect.ArmourPenetration == true)
-        {
-            Health -= damageData.baseDamage;
-            return;
-        }
-
+        
         // Погашенный урон
         // Если число меньше нуля, то броня полностью поглатила урон
-        var damageForHealth = damageData.baseDamage * damageData.armourModifier - ActiveArmour.Battery;
-        ActiveArmour.Hurt(damageData.baseDamage * damageData.armourModifier);
+        var armourPen = 1 - damageData.armourPenetration.ToInt();
+        var damageForHealth = damageData.baseDamage * damageData.armourModifier - ActiveArmour.Battery * armourPen;
+        ActiveArmour.Hurt(damageData.baseDamage * damageData.armourModifier * armourPen);
 
         // Урон наносимый телу
         var remain = Mathf.Max(0, damageForHealth);
@@ -115,7 +110,7 @@ public class LifeComponent : MonoBehaviour
     public void AddEffect(LifeComponentEffect effect)
     {
         // Если активна броня и эффект не может пробить ее
-        if (ActiveArmour.IsActive == true && effect.ArmourPenetration == false)
+        if (ActiveArmour.IsActive == true && effect.AddThroughArmour == false)
             return;
 
         // Совпадение
@@ -128,7 +123,6 @@ public class LifeComponent : MonoBehaviour
         }
         else
         {
-            print("Coincidence exist (Eff)");
             // Если совпадение нашлось, то эффекты складываются
             coincidence.Merge(effect);
         }
@@ -137,7 +131,7 @@ public class LifeComponent : MonoBehaviour
     public void AddDamageBehaviour(DamageBehaviour beh)
     {
         // Если активна броня и поведение не может пробить ее
-        if (ActiveArmour.IsActive == true && beh.ArmourPenetration == false)
+        if (ActiveArmour.IsActive == true && beh.AddThroughArmour == false)
             return;
 
         // Совпадение
@@ -149,7 +143,6 @@ public class LifeComponent : MonoBehaviour
         }
         else
         {
-            print("Coincidence exist (Beh)");
             // Если совпадение нашлось, то эффекты складываются
             coincidence.Merge(beh);
         }

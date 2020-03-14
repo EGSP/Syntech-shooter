@@ -16,7 +16,7 @@ public class SpeedDummyLifeComponent : LifeComponent, ISpeedModifiable
     private Material mat;
     private Material armourMat;
 
-    private Animator anim;
+    [SerializeField] private Animator anim;
 
     public float SpeedModifier { get; private set; }
     public float ModifierTime { get; private set; }
@@ -30,7 +30,8 @@ public class SpeedDummyLifeComponent : LifeComponent, ISpeedModifiable
         mat = HealthBar.GetComponent<Renderer>().material;
         armourMat = ArmourBar.GetComponent<Renderer>().material;
 
-        anim = GetComponent<Animator>();
+        if (anim == null)
+            anim = GetComponent<Animator>();
 
         modifierTimer = new TimerCallbacker(ModifierTime);
         SpeedModifier = 1;

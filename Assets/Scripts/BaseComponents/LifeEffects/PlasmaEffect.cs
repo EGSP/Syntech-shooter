@@ -6,10 +6,12 @@ public class PlasmaEffect : DurationEffect
     public PlasmaEffect(float _EmmitTime, float _Duration, float _Damage) : base(_EmmitTime, _Duration)
     {
         ID = 101;
-        ArmourPenetration = true;
+
+        AddThroughArmour = true;
 
         Damage = new DamageData();
         Damage.armourModifier = 1f;
+        Damage.armourPenetration = true;
         Damage.baseDamage = _Damage;
     }
 

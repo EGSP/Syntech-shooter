@@ -41,6 +41,8 @@ public class EffectManager : MonoBehaviour
             GameObject catalog = new GameObject();
             catalog.name = preset.ID + "- Catalog";
             catalog.transform.parent = parentObject.transform;
+            catalog.transform.localPosition = Vector3.zero;
+
 
             // Создаём очередь для вставки в словарь
             var newIPooledObjects = new CycleList<EffectObject>();
@@ -48,8 +50,7 @@ public class EffectManager : MonoBehaviour
             // Добавляем объекты IPooledObject в очередь
             for (int i = 0; i < preset.SpawnCount; i++)
             {
-                var iPooledObject = Instantiate(preset.Prefab);
-                iPooledObject.transform.parent = catalog.transform;
+                var iPooledObject = Instantiate(preset.Prefab, catalog.transform);
 
                 // Передаём ссылку на родительскую очередь
                 iPooledObject.Initialize();

@@ -14,7 +14,7 @@ namespace DamageEffects
         /// <summary>
         /// Проходимость сквозь активную броню
         /// </summary>
-        public bool ArmourPenetration { get; protected set; }
+        public bool AddThroughArmour { get; protected set; }
 
         /// <summary>
         /// Носитель эффекта

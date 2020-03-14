@@ -9,12 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
-  m_Name: 9MMMag
+  m_Script: {fileID: 11500000, guid: 6f3f3a749bf5a2d48ba8077a68c56bc8, type: 3}
+  m_Name: Shock
   m_EditorClassIdentifier: 
-  BulletID: 9
-  Capacity: 10000
-  ReloadFactor: 1
-  Icon: {fileID: 0}
-  DamageBehaviourPresets:
-  - {fileID: 0}
+  ShockTime: 2

@@ -16,5 +16,10 @@ public class DamageData
     /// Коэфицент урона наносимого броне (1 == 100%), умножается на базовый урон
     /// </summary>
     public float armourModifier;
+
+    /// <summary>
+    /// Прохождение активной брони насквозь
+    /// </summary>
+    public bool armourPenetration;
 }
 

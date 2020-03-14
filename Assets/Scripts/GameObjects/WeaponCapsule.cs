@@ -49,6 +49,7 @@ public class WeaponCapsule : PooledObject
         Weapon.gameObject.SetActive(true);
         Weapon.transform.SetParent(transform, true);
         Weapon.transform.localPosition = Vector3.zero;
+        weapon.transform.localEulerAngles = Vector3.zero;
 
         // Изменение цвета вершин на значение соответствующее рекости
         mesh.colors = ColorToArray(
@@ -84,6 +85,9 @@ public class WeaponCapsule : PooledObject
     public void SetPosition(Vector3 position)
     {
         transform.position = position;
+        transform.localEulerAngles = Vector3.zero;
+
+        transform.parent = null;
     }
 
     /// <summary>

@@ -123,6 +123,7 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
         // Hide and lock cursor when right mouse button pressed
         if (Input.GetKeyDown(KeyCode.L))
         {
+            Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
 
@@ -349,21 +350,14 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
         CurrentWeapon.gameObject.transform.parent = HandSystem.WeaponParent;
 
         CurrentWeapon.SetDefaultLocalPosition(settings.DefaultPosition);
+        CurrentWeapon.SetDefaultLocalRotation(Quaternion.Euler(settings.DefaultRotation));
         CurrentWeapon.transform.localPosition = settings.DefaultPosition;
         CurrentWeapon.transform.localEulerAngles = settings.DefaultRotation;
 
         IsWeaponChanging = false;
     }
 
-    /// <summary>
-    /// Выброс оружия на землю под игроком
-    /// </summary>
-    /// <param name="weapon">Выбрасываемоме оружие</param>
-    private void DropWeapon(WeaponComponent weapon)
-    {
-        weapon.transform.position = gameObject.transform.position;
-        weapon.transform.SetParent(null);
-    }
+    
 
     /// <summary>
     /// Включение управления 

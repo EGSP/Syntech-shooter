@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
-  m_Name: 9MMMag
+  m_Name: AcidMagazine
   m_EditorClassIdentifier: 
   BulletID: 9
-  Capacity: 10000
+  Capacity: 230
   ReloadFactor: 1
   Icon: {fileID: 0}
   DamageBehaviourPresets:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 5d3219d968b4cf24da40614fbc733bd8, type: 2}

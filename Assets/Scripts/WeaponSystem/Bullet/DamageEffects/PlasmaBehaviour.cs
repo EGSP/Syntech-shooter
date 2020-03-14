@@ -13,7 +13,7 @@ namespace DamageEffects
         {
             // ID == PlasmaEffect.ID
             ID = 101;
-            ArmourPenetration = true;
+            AddThroughArmour = true;
 
             EffectEmmitTime = _EffectEmmitTime;
             EffectDurTime = _EffectDurTime;

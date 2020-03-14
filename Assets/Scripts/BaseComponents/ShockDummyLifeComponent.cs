@@ -16,7 +16,7 @@ public class ShockDummyLifeComponent : LifeComponent, IShockable
     private Material mat;
     private Material armourMat;
 
-    private Animator anim;
+    [SerializeField] private Animator anim;
 
     public bool IsShocked { get; private set; }
 
@@ -29,7 +29,8 @@ public class ShockDummyLifeComponent : LifeComponent, IShockable
         mat = HealthBar.GetComponent<Renderer>().material;
         armourMat = ArmourBar.GetComponent<Renderer>().material;
 
-        anim = GetComponent<Animator>();
+        if (anim == null)
+            anim = GetComponent<Animator>();
         ShockTimer = new TimerCallbacker(0);
 
         ShockTimer.OnEmmitionEndCallback += () => anim.SetFloat("Speed", 1);

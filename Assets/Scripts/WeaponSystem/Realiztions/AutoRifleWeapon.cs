@@ -12,10 +12,14 @@ public class AutoRifleWeapon : WeaponComponent
 
     public override WeaponUpdateOutput UpdateComponent(WeaponUpdateInput input)
     {
+        recoilEffectCallbacker.Update(Time.deltaTime);
+
         var output = new WeaponUpdateOutput();
         output.weaponstate = State;
-        output.recoil = RecoilForce * Convert.ToInt32(State == WeaponState.Shooting);
-        output.recoilopacity = recoilOpacity;
+        output.recoilopacity = recoilOpacityLerped;
+        output.recoil = RecoilForce * recoilEffectActive;
+
+        recoilOpacityLerped = Mathf.Lerp(recoilOpacityLerped, recoilOpacityUnlerped, RecoilOpacityLerp);
 
         #region Обдумать реализацию ещё раз
         // Анимация отдачи
@@ -26,9 +30,9 @@ public class AutoRifleWeapon : WeaponComponent
         var activity = input.fire;
         if (activity == false)
         {
-            recoilOpacity -= Time.deltaTime * RecoilOpacityDecrease;
-            recoilOpacity = Mathf.Clamp(recoilOpacity, 0, 1);
-
+            recoilOpacityUnlerped -= Time.deltaTime * RecoilOpacityDecrease;
+            recoilOpacityUnlerped = Mathf.Clamp(recoilOpacityUnlerped, 0, 1);
+            
             return output;
         }
 
@@ -37,7 +41,10 @@ public class AutoRifleWeapon : WeaponComponent
             // TRY TO FIRE
             if (State == WeaponState.Done)
             {
-                Fire();
+                var shooting = Fire();
+
+                if (shooting)
+                    recoilEffectCallbacker.Reset();
             }
             return output;
         }
@@ -45,16 +52,19 @@ public class AutoRifleWeapon : WeaponComponent
         throw new System.Exception("WeaponUpdate вызов должен быть завершён ранее");
     }
 
-    protected override void Fire()
+    protected override bool Fire()
     {
         // Начинаем стрельбу если есть боеприпасы в очереди
         if (MagazineComponent.CountIsZero == false)
         {
-            recoilOpacity += Time.deltaTime * RecoilOpacityIncrease;
-            recoilOpacity = Mathf.Clamp(recoilOpacity, 0, 1);
+            recoilOpacityUnlerped += Time.deltaTime * RecoilOpacityIncrease;
+            recoilOpacityUnlerped = Mathf.Clamp(recoilOpacityUnlerped, 0, 1);
+           
 
             fireRoutine = FireCoroutine();
             StartCoroutine(fireRoutine);
+
+            OnFireStarted();
 
             #region Action; 
 
@@ -71,11 +81,11 @@ public class AutoRifleWeapon : WeaponComponent
                 ShootForward.Normalize();
                
                 var raycastAllHits = Physics.RaycastAll(Trunk.transform.position, ShootForward, BulletFlyDistance, GameManager.Instance.ShootRayMask);
-                OrderRaycastHits(ref raycastAllHits);
+                
 
                 // Точки выхода пробития
                 List<Vector3> outputs;
-                var acceptedHits = ComputePenetration(raycastAllHits, ShootForward, out outputs);
+                var acceptedHits = ComputePenetration(OrderRaycastHits(ref raycastAllHits), ShootForward, out outputs);
                 // Получение списка LifeComponent
                 var lifeList = LifeComponentsFromRayhits(acceptedHits);
 
@@ -131,20 +141,24 @@ public class AutoRifleWeapon : WeaponComponent
                 }
 
                 MagazineComponent.Count--;
+                
             }
 
+            return true;
             #endregion
         }
         else
         {
             print("Magazine not availabile to shoot");
         }
+        return false;
     }
 
     protected override IEnumerator FireCoroutine()
     {
         State = WeaponState.Shooting;
         RecoilAnimation.Play(FireRate);
+
 
         yield return new WaitForSeconds(FireRate);
 

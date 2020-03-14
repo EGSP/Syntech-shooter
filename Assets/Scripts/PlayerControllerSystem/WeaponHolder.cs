@@ -229,22 +229,18 @@ public class WeaponHolder : MonoBehaviour, IObservable, IMessageSender
             if (currentWeaponIndex == lockedWeaponIndex)
                 return Weapons[currentWeaponIndex];
 
+            var capsPosition = weaponCapsule.transform.position;
             newWeapon = weaponCapsule.TakeWeapon();
 
             // Одинаково для удаления и добавления
             weaponInfo.IndexInList = currentWeaponIndex;
             weaponInfo.IsLocked = false;
 
-            // Спавн капсулы для удаленного оружия
-            var capsule = PoolManager.Instance.Take("WeaponCapsule") as WeaponCapsule;
-            capsule.SetPosition(transform.position);
-            capsule.SetWeapon(Weapons[currentWeaponIndex]);
-            
             // Удаление оружия
             OnWeaponRemoved(Weapons[currentWeaponIndex]);
             OnWeaponRemovedExtended(Weapons[currentWeaponIndex], weaponInfo);
             
-            Weapons[currentWeaponIndex] = newWeapon;
+            //Weapons[currentWeaponIndex] = newWeapon;
             
             // Добавление оружия
             OnWeaponAdded(newWeapon);
@@ -252,6 +248,14 @@ public class WeaponHolder : MonoBehaviour, IObservable, IMessageSender
 
             OnWeaponAddedExtended(newWeapon, weaponInfo);
             OnWeaponChangedExtended(newWeapon, weaponInfo);
+
+            // Спавн капсулы для удаленного оружия
+            var capsule = PoolManager.Instance.Take("WeaponCapsule") as WeaponCapsule;
+            capsule.SetPosition(capsPosition);
+            capsule.SetWeapon(Weapons[currentWeaponIndex]);
+
+            Weapons[currentWeaponIndex] = newWeapon;
+
 
             return newWeapon;
         }

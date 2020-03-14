@@ -6,8 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewPlasmaBehaviourPreset", menuName = "ScriptableObjects/DamageBehaviours/PlasmaBehaviour", order = 1)]
 public class PlasmaBehaviourPreset : DamageBehaviourPreset
 {
-    // Радиус распрстранения эффекта
-    [SerializeField] private float Radius;
     // Урон наносимый эффектом
     [SerializeField] private float Damage;
 

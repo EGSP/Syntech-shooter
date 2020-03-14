@@ -32,6 +32,19 @@ public class Extensions
 
 }
 
+public static class CastExtension
+{
+    /// <summary>
+    /// Приведение в целочисленное значение с помощью тернарного оператора
+    /// </summary>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static int ToInt(this bool b)
+    {
+        return b ? 1 : 0;
+    }
+}
+
 /// <summary>
 /// Класс расширений для работы с интерфейсом
 /// </summary>

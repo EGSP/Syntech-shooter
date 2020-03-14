@@ -9,12 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
-  m_Name: 9MMMag
+  m_Script: {fileID: 11500000, guid: 54e05719ca1aef74b97b032442f26614, type: 3}
+  m_Name: Fire
   m_EditorClassIdentifier: 
-  BulletID: 9
-  Capacity: 10000
-  ReloadFactor: 1
-  Icon: {fileID: 0}
-  DamageBehaviourPresets:
-  - {fileID: 0}
+  Radius: 3
+  Damage: 10
+  EmmitTime: 1
+  Duration: 0.5
+  EffectEmmitTime: 4
+  EffectDurTime: 1
+  IsParent: 1

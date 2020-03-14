@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
-  m_Name: 9MMMag
+  m_Name: CumulativeMagazine
   m_EditorClassIdentifier: 
   BulletID: 9
-  Capacity: 10000
+  Capacity: 60
   ReloadFactor: 1
   Icon: {fileID: 0}
   DamageBehaviourPresets:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 4b69abceb68c2d04ebbf6fb2d3a555c1, type: 2}

@@ -18,6 +18,8 @@ public class WeaponMagazineComponent : MonoBehaviour, IObservable
 
         ReloadFactor = Preset.ReloadFactor;
 
+        DamageBehaviours = new List<DamageBehaviour>();
+
         // Установка модификаторов урона
         for(int i = 0; i < Preset.DamageBehaviourPresets.Count; i++)
         {

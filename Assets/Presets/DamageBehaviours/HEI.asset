@@ -9,12 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8cc980be56d5bce40abe7d3f58719404, type: 3}
-  m_Name: 9MMMag
+  m_Script: {fileID: 11500000, guid: 420c4247ba5e5f34f95f3bc32d6b759a, type: 3}
+  m_Name: HEI
   m_EditorClassIdentifier: 
-  BulletID: 9
-  Capacity: 10000
-  ReloadFactor: 1
-  Icon: {fileID: 0}
-  DamageBehaviourPresets:
-  - {fileID: 0}
+  Damage: 45
+  Radius: 2

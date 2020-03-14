@@ -8,6 +8,7 @@ public class FireEffect : DurationEffect
 
         Damage = new DamageData();
         Damage.armourModifier = 1f;
+        AddThroughArmour = true;
         Damage.baseDamage = _Damage;
     }
 
