@@ -47,8 +47,6 @@ public class HandSystem
     // Update is called once per frame
     public HandSystemOutput Update(HandSystemInput IN)
     {
-        
-
         // Угол поворота отдачи со знаком противополжным повороту по Оси N
         var recoilX = IN.weaponRecoil * (1 - WeaponRecoilResistance) * (-1) * Time.deltaTime;
         var recoilY = IN.weaponRecoil * (1 - WeaponRecoilResistance)*(-1) * Time.deltaTime;

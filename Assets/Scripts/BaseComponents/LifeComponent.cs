@@ -11,7 +11,15 @@ public class LifeComponent : MonoBehaviour
     [SerializeField] private LifeComponentPreset Preset;
     [SerializeField] private ActiveArmourPreset ArmourPreset;
 
+    /// <summary>
+    /// Вызывается при изменении количества текущего здоровья
+    /// </summary>
     public event Action<float, float> OnHealthChanged = delegate { };
+
+    /// <summary>
+    /// Вызывается при получении урона
+    /// </summary>
+    public event Action<DamageData> OnDamageTaken = delegate { };
 
     public float MaxHealth { get; protected set; }
     public float Health {
@@ -30,10 +38,25 @@ public class LifeComponent : MonoBehaviour
     }
     private float health;
 
+    /// <summary>
+    /// Возвращает true если полное здоровье
+    /// </summary>
+    public bool IsHealthful
+    {
+        get
+        {
+            if (Health == MaxHealth)
+                return true;
+
+            return false;
+        }
+    }
+
     public ActiveArmour ActiveArmour { get; private set; }
 
     private List<LifeComponentEffect> LifeComponentEffects;
     private List<DamageBehaviour> DamageBehaviours;
+    private List<IDamageTakePerk> DamageResisters;
 
     private void Constructor()
     {
@@ -43,12 +66,22 @@ public class LifeComponent : MonoBehaviour
         LifeComponentEffects = new List<LifeComponentEffect>();
         DamageBehaviours = new List<DamageBehaviour>();
 
+        if (DamageResisters != null)
+        {
+            DamageResisters.Sort((x,y) => x.DamagePerkPriority.CompareTo(y.DamagePerkPriority));
+        }
+        else
+        {
+            DamageResisters = new List<IDamageTakePerk>();
+        }
+
         ActiveArmour = new ActiveArmour(ArmourPreset);
     }
     
     // Start is called before the first frame update
     protected virtual void Awake()
     {
+        OnDamageTaken += InvokeDamageTakePerks;
         Constructor();
     }
 
@@ -95,7 +128,10 @@ public class LifeComponent : MonoBehaviour
     // Получение урона
     public virtual void Hurt(DamageData damageData)
     {
-        
+        OnDamageTaken(damageData);
+
+
+
         // Погашенный урон
         // Если число меньше нуля, то броня полностью поглатила урон
         var armourPen = 1 - damageData.armourPenetration.ToInt();
@@ -145,6 +181,45 @@ public class LifeComponent : MonoBehaviour
         {
             // Если совпадение нашлось, то эффекты складываются
             coincidence.Merge(beh);
+        }
+    }
+
+    public void AddDamageTakePerk(IDamageTakePerk damageResister)
+    {
+        if (DamageResisters == null)
+            DamageResisters = new List<IDamageTakePerk>();
+
+        InsertByPriority(damageResister);
+    }
+
+    /// <summary>
+    /// Вызов всех перков получения урона
+    /// </summary>
+    /// <param name="damageData">Полученный урон</param>
+    public void InvokeDamageTakePerks(DamageData damageData)
+    {
+        for (int i = 0; i < DamageResisters.Count; i++)
+            DamageResisters[i].PerkDamage(damageData);
+    }
+
+    /// <summary>
+    /// Добавляет в список резист с приоритетом. При равном приоритете новый будет иметь меньший индекс 
+    /// </summary>
+    /// <param name="damageResister"></param>
+    private void InsertByPriority(IDamageTakePerk damageResister)
+    {
+        if(DamageResisters.Count == 0)
+        {
+            DamageResisters.Add(damageResister);
+        }
+            
+        for(int i = 0; i < DamageResisters.Count; i++)
+        {
+            if(damageResister.DamagePerkPriority <= DamageResisters[i].DamagePerkPriority)
+            {
+                DamageResisters.Insert(++i, damageResister);
+                return;
+            }
         }
     }
 }

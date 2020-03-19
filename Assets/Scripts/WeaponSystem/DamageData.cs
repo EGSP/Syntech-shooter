@@ -23,3 +23,11 @@ public class DamageData
     public bool armourPenetration;
 }
 
+public enum DamageType
+{
+    Base,
+    Fire,
+    Plasma,
+    Shock,
+    Acid
+}
