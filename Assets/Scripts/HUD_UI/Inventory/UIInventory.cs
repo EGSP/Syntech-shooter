@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class UIInventory : MonoBehaviour
+public class UIInventory : MonoBehaviour, IPlayerObserver
 {
     public event UIController.CallHandler OnAmmoReset = delegate { };
 
@@ -50,9 +50,26 @@ public class UIInventory : MonoBehaviour
     /// </summary>
     public bool IsOpened { get; private set; }
 
+    private void Awake()
+    {
+        // Присваивание в Awake, т.к. при старте вызывается первое событие
+        UIController.Instance.OnPlayerChanged += ChangePlayerController;
+
+        UIController.Instance.OnPlayerNull += PlayerControllerNull;
+        
+        UIController.Instance.OnDisable += OnDisableCustom;
+        UIController.Instance.OnUpdate += UpdateInput;
+    }
+
     private void Start()
     {
         InstantiateGrid();
+
+    }
+
+    private void UpdateInput(float deltaTime)
+    {
+
     }
 
     public void InstantiateGrid()
@@ -63,6 +80,7 @@ public class UIInventory : MonoBehaviour
         if (AmmoPrefab == null)
             throw new System.Exception("No AmmoPrefab in UIInventory");
 
+        
         ModulesList = new List<Image>(ModulesCount);
         AmmoList = new List<UIAmmoElement>(AmmoCount);
 
@@ -88,6 +106,12 @@ public class UIInventory : MonoBehaviour
         }
     }
 
+    public void OnDisableCustom(int priority)
+    {
+        // Приоритет не имеет значения
+        Close();
+    }
+
     public void Open(PlayerControllerComponent playerController)
     {
         IsOpened = true;
@@ -108,7 +132,6 @@ public class UIInventory : MonoBehaviour
         IsOpened = false;
         InventoryCanvas.SetActive(false);
 
-        PlayerController.ActivateControll();
         PlayerInventory = null;
     }
 
@@ -142,5 +165,22 @@ public class UIInventory : MonoBehaviour
             uiAmmo.SetData(ammoData);
             uiAmmo.SetImage(resManager.GetAmmoSprite(ammoData.BulletID) as Sprite);
         }
+    }
+
+    public void Unsubscribe(IObservable observable)
+    {
+        PlayerController = null;
+        Close();
+    }
+
+    public void ChangePlayerController(PlayerControllerComponent playerControllerComponent)
+    {
+        PlayerController = playerControllerComponent;
+    }
+
+    public void PlayerControllerNull()
+    {
+        PlayerController = null;
+        Close();
     }
 }

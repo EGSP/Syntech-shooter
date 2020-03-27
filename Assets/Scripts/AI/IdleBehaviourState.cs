@@ -15,7 +15,7 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
         {
             var doctor = parent as DoctorBot;
 
-            if(Doctor != null)
+            if(doctor != null)
             {
                 Doctor = doctor;
             }
@@ -27,7 +27,8 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
             healTimerCallbacker = new TimerCallbacker(Doctor.HealingInterval);
             healTimerCallbacker.OnEmmitionEndCallback += () => CanHeal = true;
             healTimerCallbacker.OnResetCallback += () => CanHeal = false;
-            
+
+            Name = "DoctorIdle";
         }
 
         private TimerCallbacker healTimerCallbacker;
@@ -142,7 +143,7 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
         {
             var doctor = parent as DoctorBot;
 
-            if (Doctor != null)
+            if (doctor != null)
             {
                 Doctor = doctor;
             }
@@ -155,6 +156,8 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
 
             refillIntervalCallbacker.OnEmmitionEndCallback += ()=> CanFill = true;
             refillIntervalCallbacker.OnResetCallback += () => CanFill = false;
+
+            Name = "DoctorRefill";
         }
         
 

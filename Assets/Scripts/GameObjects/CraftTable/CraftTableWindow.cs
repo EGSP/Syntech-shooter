@@ -5,32 +5,86 @@ using UnityEngine.UI;
 
 public abstract class CraftTableWindow : MonoBehaviour
 {
-    // Позиция камеры в активном состоянии 
-    [SerializeField] private Transform CameraPosition;
+    /// <summary>
+    /// Крафтовый стол к которому принадлежит данное окно
+    /// </summary>
+    public CraftTable CraftTable { get; private set; }
+    
+    /// <summary>
+    /// Корневой канвас окна
+    /// </summary>
+    [SerializeField] protected Canvas MainCanvas;
 
-    // Канвас управление разделом крафта
-    [SerializeField] private Canvas WindowCanvas;
+    /// <summary>
+    /// Позиция камеры в активном сосотоянии
+    /// </summary>
+    [SerializeField] protected Transform cameraPosition;
+    public Transform CameraPosition { get => cameraPosition; private set => cameraPosition = value; }
 
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Контроллер игрока переданный окну
+    /// </summary>
+    public PlayerControllerComponent PlayerControllerComponent { get; protected set; }
+    
+    /// <summary>
+    /// Объекты, которым нужен игрок. Они устанавливаются в Awake
+    /// </summary>
+    protected List<IPlayerObserver> PlayerObservers { get; set; }
+
+    protected virtual void Awake()
     {
-        
+        PlayerObservers = new List<IPlayerObserver>();
+        // Получение списка обсерверов в дочерних объектах
+        GetComponentsInChildren<IPlayerObserver>(includeInactive: true, result: PlayerObservers);
+
+        if (MainCanvas == null)
+            MainCanvas = GetComponent<Canvas>();
     }
 
-    // Update is called once per frame
-    void Update()
+    protected virtual void Start()
     {
-        
+
+    }
+
+    /// <summary>
+    /// Инициализация окна
+    /// </summary>
+    public virtual void Initialize()
+    {
+
     }
 
     /// <summary>
     /// Открытие окна
     /// </summary>
-    /// <param name="_PlayerController">Компонент управления игрока</param>
-    public abstract void Open(PlayerControllerComponent _PlayerController);
+    /// <param name="playerControllerComponent">Компонент управления игрока</param>
+    public virtual void Open(PlayerControllerComponent playerControllerComponent)
+    {
+        PlayerControllerComponent = playerControllerComponent;
+        MainCanvas.gameObject.SetActive(true);
+        
+        // Передаем полученный контроллер
+        PlayerObservers.ForEach(x => x.ChangePlayerController(PlayerControllerComponent));
+    }
 
     /// <summary>
     /// Закрытие окна
     /// </summary>
-    public abstract void Close();
+    public virtual void Close()
+    {
+        PlayerControllerComponent = null;
+        MainCanvas.gameObject.SetActive(false);
+
+        // Передаем, что контроллера больше нет
+        PlayerObservers.ForEach(x => x.PlayerControllerNull());
+    }
+
+    public void SetCraftTable(CraftTable craftTable)
+    {
+        CraftTable = craftTable;
+
+        OnSetCraftTable();
+    }
+
+    protected abstract void OnSetCraftTable();
 }

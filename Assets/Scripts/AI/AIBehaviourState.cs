@@ -12,7 +12,7 @@ namespace AIB.AIBehaviourStates
         /// <summary>
         /// Наименование состояния
         /// </summary>
-        public readonly string Name;
+        public string Name { get; protected set; }
 
         public AIBehaviourState(AIBehaviour parent)
         {

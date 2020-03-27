@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 using UnityEngine.AI;
 
@@ -25,7 +26,7 @@ namespace AIB.AIBehaviours
         [Header("Charge")]
         [SerializeField] private int chargePerHealing;
         [SerializeField] private int chargeCapacity;
-        [SerializeField] private int chargeRefillInterval;
+        [SerializeField] private float chargeRefillInterval;
         [SerializeField] private int chargePerRefill;
 
         [Header("Supply")]
@@ -36,13 +37,7 @@ namespace AIB.AIBehaviours
         
 
         [SerializeField] private Animator animator;
-
-        /// <summary>
-        /// Текущее количество зарядов
-        /// </summary>
-        public int ChargeCount { get => chargeCount; set { chargeCount = Mathf.Clamp(chargeCount, 0, ChargeCapacity); } }
-        private int chargeCount;
-
+        
 
         /// <summary>
         /// Скорость передвижения
@@ -101,9 +96,21 @@ namespace AIB.AIBehaviours
         public int ChargeCapacity { get => chargeCapacity; private set => chargeCapacity = value; }
 
         /// <summary>
+        /// Текущее количество зарядов
+        /// </summary>
+        public int ChargeCount { get => chargeCount;
+            set
+            {
+                chargeCount = Mathf.Clamp(value, 0, ChargeCapacity);
+                ChargeCountChanged(ChargeOpacity);
+            }
+        }
+        private int chargeCount;
+
+        /// <summary>
         /// Интервал пополнения зарядов
         /// </summary>
-        public int ChargeRefillInterval { get => chargeRefillInterval; private set => chargeRefillInterval = value; }
+        public float ChargeRefillInterval { get => chargeRefillInterval; private set => chargeRefillInterval = value; }
 
         /// <summary>
         /// Количество пополняемых зарядов за единицу пополнения
@@ -124,16 +131,6 @@ namespace AIB.AIBehaviours
         /// Идентификатор запаса зарядов
         /// </summary>
         public string SupplyID { get => supplyID; set => supplyID = value; }
-        
-        /// <summary>
-        /// Компонент жизни бота
-        /// </summary>
-        public LifeComponent LifeComponent { get; private set; }
-
-        /// <summary>
-        /// Агент навигационного меша Unity
-        /// </summary>
-        public NavMeshAgent NavAgent { get; private set; }
 
         /// <summary>
         /// Используемый аниматор
@@ -153,7 +150,7 @@ namespace AIB.AIBehaviours
         /// <summary>
         /// Полон ли запас зарядов
         /// </summary>
-        public bool IsChargeful
+        public override bool IsChargeful
         {
             get
             {
@@ -167,7 +164,7 @@ namespace AIB.AIBehaviours
         /// <summary>
         /// Пуст ли запас зарядов
         /// </summary>
-        public bool IsChargeless
+        public override bool IsChargeless
         {
             get
             {
@@ -177,15 +174,21 @@ namespace AIB.AIBehaviours
                 return false;
             }
         }
+
+        /// <summary>
+        /// Наполненность заряда
+        /// </summary>
+        public override float ChargeOpacity
+        {
+            get
+            {
+                return ChargeCount / ChargeCapacity;
+            }
+        }
         
-
-
         protected override void Awake()
         {
             base.Awake();
-
-            LifeComponent = GetComponent<LifeComponent>();
-            NavAgent = GetComponent<NavMeshAgent>();
 
             if (Animator == null)
                 Animator = GetComponent<Animator>();
@@ -200,8 +203,6 @@ namespace AIB.AIBehaviours
         protected override void Start()
         {
             base.Start();
-
-            SetBehaviourState(new IdleBehaviourState(this));
         }
 
         public void SetPatient(LifeComponent patient)
@@ -213,7 +214,7 @@ namespace AIB.AIBehaviours
 
         public override void SignalReceive()
         {
-            OnSignalReceived();
+            SignalReceived();
         }
 
         /// <summary>
@@ -222,7 +223,7 @@ namespace AIB.AIBehaviours
         public RobotSupplyStation FindSupplyStation()
         {
             var navPos = NavAgent.transform.position;
-            var colliders = Physics.OverlapSphere(navPos, FindSupplyRadius, supplyLayerMask);
+            var colliders = Physics.OverlapSphere(navPos, FindSupplyRadius, supplyLayerMask, QueryTriggerInteraction.Collide);
 
             if (colliders.Length > 0)
             {
@@ -266,5 +267,37 @@ namespace AIB.AIBehaviours
             return taken;
         }
 
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, healingDistance);
+
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, findSupplyRadius);
+
+            Gizmos.color = Color.gray;
+            Gizmos.DrawWireSphere(transform.position, refillDistance);
+        }
+
+        protected override void OnEnableBehaviour()
+        {
+            SetBehaviourState(new IdleBehaviourState(this));
+        }
+
+        protected override void OnDisableBeahviour()
+        {
+            NavAgent.isStopped = true;
+        }
+
+        public override void SendCreator(GameObject creator)
+        {
+            var life = creator.GetComponent<LifeComponent>();
+
+            // Если создатель имеет здоровье, то он станет пациентом
+            if(life != null)
+            {
+                SetPatient(life);
+            }
+        }
     }
 }

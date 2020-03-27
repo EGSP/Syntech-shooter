@@ -23,7 +23,7 @@ public class PlayerInventoryComponent : InventoryComponent
         // Подбор боеприпасов
         var colliders = Physics.OverlapSphere(transform.position + CentreOffset, OverlapRadius, AmmoLayer, QueryTriggerInteraction.Collide);
 
-        var ammoList = InventorySystem.Inventory[InventoryItemType.Ammo];
+        var ammoList = InventorySystem.GetListOfInventoryItem(InventoryItemType.Ammo);
         for (int i = 0; i < colliders.Length; i++)
         {
             var ammo = colliders[i].GetComponent<Ammo>();

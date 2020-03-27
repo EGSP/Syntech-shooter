@@ -2,8 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Linq;
+
 public class CraftTable : MonoBehaviour
 {
+    /// <summary>
+    /// Приоритет в интерфейсе
+    /// </summary>
+    [SerializeField] private int UIPriority;
+
+    [Space(10)]
+    [Header("OpenSettings")]
     // Кнопка открытия стола
     [SerializeField] private KeyCode OpenKey;
 
@@ -13,6 +22,8 @@ public class CraftTable : MonoBehaviour
     //Смещение центра радиуса
     [SerializeField] private Vector3 RadiusOffset;
 
+    [Space(10)]
+    [Header("UseSettings")]
     // Кнопка переключения разделов влево
     [SerializeField] private KeyCode LeftKey;
 
@@ -22,11 +33,21 @@ public class CraftTable : MonoBehaviour
     // Слой по которому производится поиск игрока
     [SerializeField] private LayerMask PlayerLayer;
 
+    [SerializeField] private Transform spaceTransform;
+    /// <summary>
+    /// Позиция со свободным пространством, в котором можно спавнить объекты
+    /// </summary>
+    public Transform SpaceTransform { get => spaceTransform; private set => spaceTransform = value; }
+
+    [Space(10)]
+    [Header("Windows")]
     // Окна стола крафта или по-другому разделы
     [SerializeField] private CraftTableWindow[] Windows;
 
     // Индекс окна, открываемого по стандарту
     [SerializeField] private int StartWindowIndex;
+
+    [SerializeField] private Camera WindowsCamera;
 
     // Контроллер игрока, может быть null
     private PlayerControllerComponent PlayerController;
@@ -38,13 +59,25 @@ public class CraftTable : MonoBehaviour
     private bool IsOpened;
 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         if (Windows == null)
-            throw new System.Exception("Windows[] is Null");
+            throw new System.Exception("Windows[] is null");
+
+        if (SpaceTransform == null)
+            throw new System.Exception("SpacePosition is null");
+
+        if (WindowsCamera == null)
+            throw new System.Exception("Camera is null");
 
         // Ограничение значение индекса в пределах количества окон во избежание ошибок
         StartWindowIndex = Mathf.Clamp(StartWindowIndex, 0, Windows.Length-1);
+
+        for(int i = 0; i < Windows.Length; i++)
+        {
+            Windows[i].Initialize();
+            Windows[i].SetCraftTable(this);
+        }
     }
 
     // Update is called once per frame
@@ -117,10 +150,19 @@ public class CraftTable : MonoBehaviour
 
         PlayerController.DeactivateControll();
         PlayerController.DeactivateCamera();
+        // Включаем камеру окон
+        WindowsCamera.enabled = true;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        
+        UIController.Instance.OpenCraftTable(UIPriority);
 
         currentWindowIndex = StartWindowIndex;
 
         OpenWindow(currentWindowIndex);
+
+        
     }
     
     /// <summary>
@@ -129,22 +171,26 @@ public class CraftTable : MonoBehaviour
     public void Close()
     {
         IsOpened = false;
-
+        
+        // Отключаем камеру окон
+        WindowsCamera.enabled = false;
         PlayerController.ActivateCamera();
         PlayerController.ActivateControll();
 
-        CloseWindow(currentWindowIndex);
+        UIController.Instance.CloseCraftTable(UIPriority);
 
+        CloseWindow(currentWindowIndex);
+        
         PlayerController = null;
     }
 
     /// <summary>
-    /// Смена текущего окна. Закрывает текущее окно
+    /// Смена текущего окна. Закрывает текущее окно и открывает новое
     /// </summary>
     private void ChangeWindow(int _CurrentWindowIndex,int _NextWindowIndex)
     {
-        Windows[_CurrentWindowIndex].Close();
-        Windows[_NextWindowIndex].Open(PlayerController);
+        CloseWindow(_CurrentWindowIndex);
+        OpenWindow(_NextWindowIndex);
     }
 
     /// <summary>
@@ -153,7 +199,10 @@ public class CraftTable : MonoBehaviour
     /// <param name="_OpenWindowIndex">Индекс окна, которое нужно открыть</param>
     private void OpenWindow(int _OpenWindowIndex)
     {
-        Windows[_OpenWindowIndex].Open(PlayerController);
+        var window = Windows[_OpenWindowIndex];
+        window.Open(PlayerController);
+
+        AlignCamera(window);
     }
 
     /// <summary>
@@ -165,6 +214,15 @@ public class CraftTable : MonoBehaviour
         Windows[_CloseWindowIndex].Close();
     }
 
+    /// <summary>
+    /// Изменяет положение камеры в зависимости от настроек окна
+    /// </summary>
+    /// <param name="window">Окно с настройками</param>
+    private void AlignCamera(CraftTableWindow window)
+    {
+        WindowsCamera.transform.position = window.CameraPosition.position;
+        WindowsCamera.transform.rotation = window.CameraPosition.rotation;
+    }
 
     public void OnDrawGizmosSelected()
     {

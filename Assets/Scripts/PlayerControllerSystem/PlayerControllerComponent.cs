@@ -6,6 +6,8 @@ using UnityEngine;
 
 using System.Linq;
 
+using AIB.AIBehaviours;
+
 [RequireComponent(typeof(PlayerInventoryComponent))]
 [RequireComponent(typeof(PlayerLifeComponent))]
 [RequireComponent(typeof(WeaponHolder))]
@@ -50,6 +52,21 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
     /// Оружие игрока
     /// </summary>
     public WeaponHolder WeaponHolder { get; private set; }
+
+    /// <summary>
+    /// Подконтрольный робот
+    /// </summary>
+    public SignalAIBehaviour SignalAI { get; private set; }
+
+    /// <summary>
+    /// Вызывается при изменении робота. Не передает null
+    /// </summary>
+    public Action<SignalAIBehaviour> OnSignalAIChanged = delegate { };
+
+    /// <summary>
+    /// Вызывается при убирании текущего робота
+    /// </summary>
+    public Action OnSignalAIRemoved = delegate { };
 
     /// <summary>
     /// Текущее оружие
@@ -365,6 +382,9 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
     public void ActivateControll()
     {
         IsControlActive = true;
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     /// <summary>
@@ -398,6 +418,32 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
 
         var relativePos = transform.position+MoveSystem.GetBodyBones().BodyCenterOffset;
         Gizmos.DrawLine(relativePos, relativePos +transform.forward * MoveSystem.GetDampLength());
+    }
+
+    
+    /// <summary>
+    /// Добавление робота. Не использовать null
+    /// </summary>
+    /// <param name="signalAI"></param>
+    public void SetSignalAI(SignalAIBehaviour signalAI)
+    {
+        SignalAI = signalAI;
+
+        OnSignalAIChanged(SignalAI);
+    }
+
+    /// <summary>
+    /// Удаляет робота и передает его по ссылке
+    /// </summary>
+    public SignalAIBehaviour RemoveSignalAI()
+    {
+        var signalAI = SignalAI;
+
+        SignalAI = null;
+
+        OnSignalAIRemoved();
+
+        return signalAI;
     }
 }
 
