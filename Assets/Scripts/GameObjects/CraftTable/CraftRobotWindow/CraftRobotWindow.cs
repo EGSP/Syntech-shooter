@@ -44,6 +44,8 @@ public class CraftRobotWindow : CraftTableWindow
 
         RobotBuilder = GetComponent<RobotBuilder>();
 
+        RobotBuilder.Initialize();
+
         RobotSelector.OnRobotChoosed += ChooseRobot;
 
         RobotOverview.RobotBuildPanel.OnBuildButtonClicked += BuildRobot;
@@ -80,11 +82,8 @@ public class CraftRobotWindow : CraftTableWindow
     /// <param name="id">Идентификатор выбираемого робота</param>
     private void ChooseRobot(string id)
     {
-
         CurrentRobot = id;
-
-        RobotSelector.SelectRobot(id);
-
+        
         // Если робот есть в наличии у игрока
         if (PlayerRobotAvailability(id))
         {
@@ -94,6 +93,8 @@ public class CraftRobotWindow : CraftTableWindow
 
             RobotOverview.ToBuild = false;
             RobotOverview.Robot = robot;
+
+            RobotSelector.SelectRobot(id,false);
 
         }
         else
@@ -111,9 +112,11 @@ public class CraftRobotWindow : CraftTableWindow
                 if (robot != null)
                 {
                     RobotOverview.ToBuild = true;
-                    RobotOverview.RobotBuildPanel.SetDetails(data.Current, data.Details);
+                    RobotOverview.RobotBuildPanel.SetDetails(data);
 
                     RobotOverview.Robot = robot;
+
+                    RobotSelector.SelectRobot(id, true);
                 }
             }
             else
@@ -135,16 +138,18 @@ public class CraftRobotWindow : CraftTableWindow
         {
             SignalAIBehaviour robot = data.RobotPrefab;
 
-            RobotStats.Robot = robot;
+            RobotStats.Robot = null;
 
             // Это необязательное условие, протсо нечего отрисовывать обзору при отсутствии 
             if (robot != null)
             {
                 CurrentRobot = robot.ID;
                 RobotOverview.ToBuild = true;
-                RobotOverview.RobotBuildPanel.SetDetails(data.Current, data.Details);
+                RobotOverview.RobotBuildPanel.SetDetails(data);
 
                 RobotOverview.Robot = robot;
+
+                RobotSelector.SelectRobot(robot.ID, true);
             }
         }
         else
@@ -217,7 +222,7 @@ public class CraftRobotWindow : CraftTableWindow
             data.AddDetail(1);
 
             // Изменяем интерфейс
-            RobotOverview.RobotBuildPanel.SetDetails(data.Current, data.Details);
+            RobotOverview.RobotBuildPanel.SetDetails(data);
 
         }
     }

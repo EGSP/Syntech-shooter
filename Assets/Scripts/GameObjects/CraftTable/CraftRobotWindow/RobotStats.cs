@@ -13,6 +13,8 @@ public class RobotStats : MonoBehaviour
     [SerializeField] private Image AbilityBar;
     [Header("Texts")]
     [SerializeField] private TMP_Text NameText;
+    [Header("Images")]
+    [SerializeField] private Image RobotIcon;
 
     /// <summary>
     /// Робот используемый для отрисовки
@@ -61,6 +63,7 @@ public class RobotStats : MonoBehaviour
     private void ShowStats()
     {
         NameText.text = Robot.RobotName;
+        RobotIcon.sprite = GameManager.Instance.CompanionAssetManager.GetWeaponBundleByID(Robot.ID).companionIcon;
 
         OnRobotLifeChanged(Robot.LifeComponent.Health, Robot.LifeComponent.MaxHealth);
         OnRobotAblityChanged(Robot.ChargeOpacity);
@@ -72,6 +75,8 @@ public class RobotStats : MonoBehaviour
     private void ShowNotify()
     {
         NameText.text = "Empty";
+
+        RobotIcon.sprite = null;
 
         OnRobotAblityChanged(0);
         OnRobotLifeChanged(0, 1);

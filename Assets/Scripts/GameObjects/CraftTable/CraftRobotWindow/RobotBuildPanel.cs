@@ -17,10 +17,20 @@ public class RobotBuildPanel : MonoBehaviour
     [Header("UIElements")]
     // Шкала постройки
     [SerializeField] private Image BuildBar;
+    [SerializeField] private Color BarDefaultColor;
+    [SerializeField] private Color BarFilledColor;
     // Количество необходимых и текущих деталей
     [SerializeField] private TMP_Text DetailsText;
 
+    /// <summary>
+    /// Вызывается при клике на кнопку
+    /// </summary>
     public event Action OnBuildButtonClicked = delegate { };
+
+    /// <summary>
+    /// Вызывается при изменении отображения деталей. Возвращает opacity
+    /// </summary>
+    public event Action<RobotBuilderData> OnDetailsChange = delegate { };
 
     private void Awake()
     {
@@ -30,14 +40,22 @@ public class RobotBuildPanel : MonoBehaviour
     /// <summary>
     /// Устанавливает значения для отображения
     /// </summary>
-    /// <param name="current">Текущее количество деталей</param>
-    /// <param name="details">Необходимое количество деталей</param>
-    public void SetDetails(int current, int details)
+    public void SetDetails(RobotBuilderData data)
     {
-        DetailsText.text = $"{current}/{details}";
+        OnDetailsChange(data);
+        if(data.ReadyToBuild)
+        {
+            BuildBar.color = BarFilledColor;
+        }
+        else
+        {
+            BuildBar.color = BarDefaultColor;
+        }
+
+        DetailsText.text = $"{data.Current}/{data.CompanionBundle.details}";
         
         var color = BuildBar.color;
-        color.a = (float)current / (float)details;
+        color.a = data.BuildOpacity;
         BuildBar.color = color;
     }
 

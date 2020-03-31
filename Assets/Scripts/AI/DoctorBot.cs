@@ -12,10 +12,6 @@ namespace AIB.AIBehaviours
 {
     public class DoctorBot : SignalAIBehaviour
     {
-        [Header("Movement")]
-        [SerializeField] private float moveSpeed;
-        [SerializeField] private float angularSpeed;
-
         [Header("Healing")]
         [Range(-1,1)]
         [SerializeField] private float healingDot;
@@ -35,36 +31,6 @@ namespace AIB.AIBehaviours
         [SerializeField] private LayerMask supplyLayerMask;
         [SerializeField] private string supplyID;
         
-
-        [SerializeField] private Animator animator;
-        
-
-        /// <summary>
-        /// Скорость передвижения
-        /// </summary>
-        public float MoveSpeed
-        {
-            get => moveSpeed;
-            private set
-            {
-                moveSpeed = value;
-                NavAgent.speed = moveSpeed;
-            }
-        }
-
-        /// <summary>
-        /// Скорость поворота
-        /// </summary>
-        public float AngularSpeed
-        {
-            get => angularSpeed;
-            private set
-            {
-                angularSpeed = value;
-                NavAgent.angularSpeed = angularSpeed;
-            }
-        }
-
         /// <summary>
         /// Угол при котором боту не нужно поворачиваться для лечения
         /// </summary>
@@ -132,10 +98,7 @@ namespace AIB.AIBehaviours
         /// </summary>
         public string SupplyID { get => supplyID; set => supplyID = value; }
 
-        /// <summary>
-        /// Используемый аниматор
-        /// </summary>
-        public Animator Animator { get => animator; set => animator = value; }
+       
         
         /// <summary>
         /// Объект которого нужно лечить 
@@ -189,14 +152,7 @@ namespace AIB.AIBehaviours
         protected override void Awake()
         {
             base.Awake();
-
-            if (Animator == null)
-                Animator = GetComponent<Animator>();
-
-            // Для вызова свойств
-            MoveSpeed = MoveSpeed;
-            AngularSpeed = AngularSpeed;
-
+            
             ChargeCount = ChargeCapacity;
         }
 
@@ -263,7 +219,7 @@ namespace AIB.AIBehaviours
         public int TakeCharge(int countNeed)
         {
             var taken = Mathf.Clamp(countNeed, 0, ChargeCount);
-
+            
             return taken;
         }
 

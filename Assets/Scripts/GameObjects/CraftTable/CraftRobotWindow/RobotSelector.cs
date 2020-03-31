@@ -17,6 +17,12 @@ public class RobotSelector : MonoBehaviour
     
     [Header("UIElements")]
     [SerializeField] private RectTransform RobotIconsParent;
+    // Стандартный цвет
+    [SerializeField] private Color DefaultColor;
+    // Цвет при выделении и отсутствии робота у игрока
+    [SerializeField] private Color BuildColor;
+    // Цвет при выделении и наличии робота у игрока
+    [SerializeField] private Color OwnColor;
     
 
     [Header("Prefabs")]
@@ -31,6 +37,9 @@ public class RobotSelector : MonoBehaviour
     /// Вызывается при выборе робота из списка. Передает ID
     /// </summary>
     public event Action<string> OnRobotChoosed = delegate { };
+
+    // Последняя выбранная иконка
+    private RobotSelectorIcon lastIcon;
 
     private void Awake()
     {
@@ -48,6 +57,8 @@ public class RobotSelector : MonoBehaviour
             robotIcon.OnClickedEvent += ChooseRobot;
 
             robotIcon.RobotID = builder.Data[i].RobotPrefab.ID;
+            robotIcon.Icon.sprite = builder.Data[i].CompanionBundle.companionIcon;
+            robotIcon.ShadowColor = DefaultColor;
 
             RobotIcons.Add(builder.Data[i].RobotPrefab.ID, robotIcon);
         }
@@ -57,13 +68,19 @@ public class RobotSelector : MonoBehaviour
     /// Выделить робота в селекторе
     /// </summary>
     /// <param name="id">Идентификатор робота</param>
-    public void SelectRobot(string id)
+    public void SelectRobot(string id, bool toBuild)
     {
         if (RobotIcons.ContainsKey(id))
         {
+            if (lastIcon != null)
+                lastIcon.ShadowColor = DefaultColor;
+
             var icon = RobotIcons[id];
 
             icon.OnSelect();
+            icon.ShadowColor = toBuild ? BuildColor : OwnColor;
+
+            lastIcon = icon;
         }
     }
 

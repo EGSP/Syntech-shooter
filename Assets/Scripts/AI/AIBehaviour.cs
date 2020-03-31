@@ -31,6 +31,19 @@ namespace AIB.AIBehaviours
             }
         }
 
+        [Header("Movement")]
+        [SerializeField] protected float moveSpeed;
+        [SerializeField] protected float angularSpeed;
+        [SerializeField] protected float angularAcceleration;
+        [SerializeField] protected float angularDeltaTreshold;
+
+        /// <summary>
+        /// Используемый аниматор
+        /// </summary>
+        public Animator Animator { get => animator; set => animator = value; }
+        [Header("Other")]
+        [SerializeField] protected Animator animator;
+
         /// <summary>
         /// Текущее состояние
         /// </summary>
@@ -39,7 +52,7 @@ namespace AIB.AIBehaviours
         /// <summary>
         /// Включен ли AI
         /// </summary>
-        private bool isEnabled;
+        protected bool isEnabled;
 
         /// <summary>
         /// Вызывает насильную отписку
@@ -57,6 +70,54 @@ namespace AIB.AIBehaviours
         public NavMeshAgent NavAgent { get; private set; }
 
         /// <summary>
+        /// Скорость передвижения
+        /// </summary>
+        public float MoveSpeed
+        {
+            get => moveSpeed;
+            private set
+            {
+                moveSpeed = value;
+                NavAgent.speed = moveSpeed;
+            }
+        }
+
+        /// <summary>
+        /// Скорость поворота
+        /// </summary>
+        public float AngularSpeed
+        {
+            get => angularSpeed;
+            private set
+            {
+                angularSpeed = value;
+                NavAgent.angularSpeed = angularSpeed;
+            }
+        }
+
+        /// <summary>
+        /// Скорость по направлению вперед от -1 до 1
+        /// </summary>
+        public float ForwardVelocity
+        {
+            get
+            {
+                Vector3 velocity = transform.InverseTransformDirection(NavAgent.velocity);
+                float forwardVelocity = velocity.z / MoveSpeed;
+
+                return forwardVelocity;
+            }
+        }
+
+        /// <summary>
+        /// Скорость поворота от -1 до 1 в зависимости от направления
+        /// </summary>
+        public float AngularVelocity { get; protected set; }
+        
+        // Последнее значение вращения
+        private float lastRotation;
+
+        /// <summary>
         /// Подключается к AIManager.OnUpdate
         /// </summary>
         protected virtual void Awake()
@@ -64,8 +125,17 @@ namespace AIB.AIBehaviours
             if (CurrentBehaviourState == null)
                 CurrentBehaviourState = new EmptyState(this);
 
+            if (Animator == null)
+                Animator = GetComponent<Animator>();
+
             LifeComponent = GetComponent<LifeComponent>();
             NavAgent = GetComponent<NavMeshAgent>();
+
+            // Для вызова свойств
+            MoveSpeed = MoveSpeed;
+            AngularSpeed = AngularSpeed;
+
+            lastRotation = transform.eulerAngles.y;
         }
 
         private void OnEnable()
@@ -91,6 +161,8 @@ namespace AIB.AIBehaviours
         protected virtual void UpdateState(AIUpdateData updateData)
         {
             CurrentBehaviourState = CurrentBehaviourState.Update(updateData);
+
+            UpdateRotationInfo(updateData);
         }
 
         /// <summary>
@@ -146,6 +218,53 @@ namespace AIB.AIBehaviours
         /// </summary>
         /// <param name="creator">объект создатель</param>
         public abstract void SendCreator(GameObject creator);
+        
+        float velocity = 0;
+        /// <summary>
+        /// Обновление информации о вращении по Оси Y
+        /// </summary>
+        public void UpdateRotationInfo(AIUpdateData updateData)
+        {
+            var rotation = Extensions.FixAngle(transform.eulerAngles.y);
+            
+            int sign = 0;
+            var delta = 0f;
+            if (rotation > lastRotation)
+            {
+                //// Поворот налево
+               delta = rotation - lastRotation;
+                //velocity = delta / updateData.deltaTime;
+                if (delta > angularDeltaTreshold)
+                    sign = -1;
+            }
+            else
+            {
+                //// Поворот направо
+                delta = lastRotation - rotation;
+                //velocity = delta / updateData.deltaTime;
+
+                if (delta > angularDeltaTreshold)
+                    sign = 1;
+            }
+
+            Debug.Log(delta);
+            if (sign != 0)
+            {
+                velocity += angularAcceleration * sign * updateData.deltaTime;
+            }
+            else
+            {
+                velocity = Mathf.Lerp(velocity, 0, angularAcceleration * updateData.deltaTime);
+            }
+
+            velocity = Mathf.Clamp(velocity, -1, 1);
+
+            AngularVelocity = velocity;
+
+            lastRotation = rotation;
+        }
+        
+
     }
 
     /// <summary>

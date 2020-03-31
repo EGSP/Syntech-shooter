@@ -29,14 +29,24 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
             healTimerCallbacker.OnResetCallback += () => CanHeal = false;
 
             Name = "DoctorIdle";
+
+            movementAnim = Animator.StringToHash("Movement");
+            forwardAnim = Animator.StringToHash("Forward");
+            angularAnim = Animator.StringToHash("Side");
         }
 
         private TimerCallbacker healTimerCallbacker;
 
         private bool CanHeal;
 
+        private int movementAnim;
+        private int forwardAnim;
+        private int angularAnim;
+
         public override AIBehaviourState Update(AIUpdateData updateData)
         {
+            UpdateAnimation();
+
             healTimerCallbacker.Update(updateData.deltaTime);
 
             // Если есть пациент
@@ -44,19 +54,44 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
             {
                 var patient = Doctor.Patient;
 
+                var pos = Doctor.NavAgent.transform.position;
+                pos.y = 0;
+                var patientPos = patient.transform.position;
+                patientPos.y = 0;
+
+                var dir = (patientPos - pos).normalized;
+                var distance = (patient.transform.position - pos).magnitude;
+
+                var patientInDistance = distance < Doctor.HealingDistance;
+
+                // Поворачиваемся в сторону игрока
+                if (patientInDistance)
+                {
+                    // Нужно повернуться в сторону игрока
+                    
+                    var doctorRotation = Doctor.transform.rotation;
+
+                    Doctor.transform.rotation = Quaternion.RotateTowards(
+                        doctorRotation,
+                        Quaternion.LookRotation(dir, Vector3.up),
+                        Doctor.AngularSpeed* updateData.deltaTime);
+
+
+                }
+                else
+                {
+                    // Если не в зоне лечения
+                    Move(patient.transform.position);
+                }
+
                 // Если нужно лечить
                 if (patient.IsHealthful == false)
                 {
                     // Если есть заряд у доктора
                     if (Doctor.IsChargeless == false)
                     {
-                        var pos = Doctor.NavAgent.transform.position;
-                        var dir = (patient.transform.forward - pos).normalized;
-
-                        var distance = (patient.transform.position - pos).magnitude;
-
                         // Если бот на дистанции лечения
-                        if(distance < Doctor.HealingDistance)
+                        if(patientInDistance)
                         {
                             // Смотрит ли бот на пациента
                             var dot = Vector3.Dot(Doctor.NavAgent.transform.forward, dir); 
@@ -75,20 +110,11 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
                                 return this;
                             }
 
-                            // Нужно повернуться в сторону игрока
-                            Doctor.NavAgent.isStopped = true;
-                            var doctorRotation = Doctor.transform.rotation;
-
-                            Doctor.transform.rotation = Quaternion.RotateTowards(
-                                doctorRotation,
-                                Quaternion.LookRotation(dir, Vector3.up),
-                                Doctor.AngularSpeed);
-
                             return this;
                         }
 
                         // Если можем лечить, но не достаем
-                        Doctor.NavAgent.SetDestination(patient.transform.position);
+                        Move(patient.transform.position);
                         return this;
                     }
 
@@ -97,14 +123,46 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
 
                 }
 
-                // Если не нужно лечить 
-                Doctor.NavAgent.SetDestination(patient.transform.position);
+                // Если не нужно лечить
                 return this;
             }
 
             // Стоим на месте
-            Doctor.NavAgent.isStopped = true; 
+            Doctor.NavAgent.isStopped = true;
             return this;
+        }
+
+        /// <summary>
+        /// Перемещение доктора в заданную точку
+        /// </summary>
+        private void Move(Vector3 position)
+        {
+            Doctor.NavAgent.SetDestination(position);
+        }
+
+        /// <summary>
+        /// Обновление анимации
+        /// </summary>
+        private void UpdateAnimation()
+        {
+            var animator = Doctor.Animator;
+
+            animator.SetFloat(forwardAnim, Doctor.ForwardVelocity);
+            animator.SetFloat(angularAnim, Doctor.AngularVelocity);
+
+            //if (Doctor.NavAgent.isStopped == true)
+            //{
+            //    Movement = false
+            //    animator.SetBool(movementAnim, false);
+            //}
+            //else
+            //{
+            //    animator.SetBool(movementAnim, true);
+
+            //    animator.SetFloat(forwardAnim, Doctor.ForwardVelocity);
+            //    animator.SetFloat(angularAnim, Doctor.AngularVelocity);
+
+            //}
         }
 
         /// <summary>

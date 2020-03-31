@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 using AIB.AIBehaviours;
 
@@ -21,7 +22,7 @@ public class RobotOverview : MonoBehaviour
     [Header("UIElements")]
     [SerializeField] private RobotBuildPanel robotBuildPanel;
     public RobotBuildPanel RobotBuildPanel { get => robotBuildPanel; private set => robotBuildPanel = value; }
-
+    
     [SerializeField] private RectTransform DefaultPanel;
 
     [Space(10)]
@@ -29,7 +30,12 @@ public class RobotOverview : MonoBehaviour
 
     [Space(10)]
     [SerializeField] private TMP_Text RobotName;
-    
+    [SerializeField] private TMP_Text RobotOwner;
+    //Реальное изображение робота
+    [SerializeField] private Image RobotImage;
+
+  
+
     [Header("Prefabs")]
     [SerializeField] private RobotCharacterElement robotCharacterElement;
     /// <summary>
@@ -55,13 +61,11 @@ public class RobotOverview : MonoBehaviour
 
             if(toBuild == true)
             {
-                RobotBuildPanel.gameObject.SetActive(true);
-                DefaultPanel.gameObject.SetActive(false);
+                BuildState();
             }
             else
             {
-                DefaultPanel.gameObject.SetActive(true);
-                RobotBuildPanel.gameObject.SetActive(false);
+                DefaultState();
             }
         }
     }
@@ -75,17 +79,37 @@ public class RobotOverview : MonoBehaviour
         get => robot;
         set
         {
-            if (robot != null)
+            if (robot == null)
+            {
+                // Очистка изображения
+                UpdateRobotImage();
+            }
+            else
+            {
                 ClearCharacters();
+            }
 
             robot = value;
 
-            // Отрисовка характеристик
-            if (robot != null)
+            RobotCharacters.Robot = Robot;
+            RobotName.text = Robot.RobotName;
+
+            var data = CraftRobotWindow.RobotBuilder.Data
+                .FirstOrDefault(x => x.CompanionBundle.ID == robot.ID);
+
+            if (data != null)
             {
-                RobotCharacters.Robot = Robot;
-                RobotName.text = Robot.RobotName;
+                // Если строим робота
+                if (ToBuild == true)
+                {
+                    UpdateRobotImage(data);
+                }
+                else
+                {
+                    UpdateRobotImage(1);
+                }
             }
+
         }
     }
     private SignalAIBehaviour robot;
@@ -100,6 +124,8 @@ public class RobotOverview : MonoBehaviour
     {
         InactiveElements = new Stack<RobotCharacterElement>();
         ActiveElements = new Stack<RobotCharacterElement>();
+
+        RobotBuildPanel.OnDetailsChange += UpdateRobotImage;
 
         for(int i = 0; i < charactersBaseCount; i++)
         {
@@ -166,5 +192,56 @@ public class RobotOverview : MonoBehaviour
         var instance = Instantiate(prefab);
 
         return instance;
+    }
+
+    /// <summary>
+    /// Открывает строительную панель
+    /// </summary>
+    private void BuildState()
+    {
+        RobotBuildPanel.gameObject.SetActive(true);
+        DefaultPanel.gameObject.SetActive(false);
+
+        RobotOwner.text = "TO BUILD";
+    }
+
+    /// <summary>
+    /// Открывает стандартную панель
+    /// </summary>
+    private void DefaultState()
+    {
+        DefaultPanel.gameObject.SetActive(true);
+        RobotBuildPanel.gameObject.SetActive(false);
+
+        RobotOwner.text = "YOUR";
+    }
+
+    /// <summary>
+    /// Обновление изображение робота
+    /// </summary>
+    /// <param name="data">Не может быть null</param>
+    private void UpdateRobotImage(RobotBuilderData data)
+    {
+        RobotImage.sprite = data.CompanionBundle.companionImage;
+
+        var material = RobotImage.material;
+        material.SetFloat("_Opacity", data.BuildOpacity);
+    }
+
+    /// <summary>
+    /// Очищает все параметры изображения
+    /// </summary>
+    private void UpdateRobotImage()
+    {
+        RobotImage.sprite = null;
+    }
+
+    /// <summary>
+    /// Устанавливает opacity 
+    /// </summary>
+    private void UpdateRobotImage(float opacity)
+    {
+        var material = RobotImage.material;
+        material.SetFloat("_Opacity", opacity);
     }
 }

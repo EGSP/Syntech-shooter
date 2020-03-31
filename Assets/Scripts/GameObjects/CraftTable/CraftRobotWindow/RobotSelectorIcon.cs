@@ -12,6 +12,22 @@ public class RobotSelectorIcon : MonoBehaviour
     /// Идентификатор робота
     /// </summary>
     public string RobotID { get; set; }
+
+    /// <summary>
+    /// Иконка отображения робота
+    /// </summary>
+    public Image Icon { get => icon; private set => icon = value; }
+    [SerializeField] private Image icon;
+
+    [SerializeField] private Image shadowImage;
+
+    /// <summary>
+    /// Цвет тени (подсветки)
+    /// </summary>
+    public Color ShadowColor
+    {
+        set => shadowImage.color = value;
+    }
     
     /// <summary>
     /// Вызывается при клике на иконку

@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
         WorldSettings.Setup();
 
         WeaponAssetManager.Initialize();
+        companionAssetManager.Initialize();
         
     }
 
@@ -36,6 +37,12 @@ public class GameManager : MonoBehaviour
         {
             weaponAssetManager = value;
         }
+    }
+
+    [SerializeField] private CompanionAssetManager companionAssetManager;
+    public CompanionAssetManager CompanionAssetManager
+    {
+        get => companionAssetManager; private set => companionAssetManager = value;
     }
 
     public LayerMask LifeLayerMask;

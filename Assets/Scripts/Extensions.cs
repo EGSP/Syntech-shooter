@@ -20,6 +20,22 @@ public class Extensions
     }
 
     /// <summary>
+    /// If f > 180, then returns f = 180 - (f - 180)
+    /// </summary>
+    /// <param name="f">Angle to fix</param>
+    /// <returns>Fixed angle to 180 of f</returns>
+    public static float FixAngleTo180(float f)
+    {
+        if (f > 180)
+        {
+            var delta = f - 180;
+            f = 180 - delta;
+        }
+
+        return f;
+    }
+
+    /// <summary>
     /// Returns middle value of ab
     /// </summary>
     /// <returns>Middle value</returns>
