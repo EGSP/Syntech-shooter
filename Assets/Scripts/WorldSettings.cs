@@ -6,24 +6,45 @@ using System.Threading.Tasks;
 
 using UnityEngine;
 
-public class WorldSettings
+/// <summary>
+/// Класс настроек поведения мира отдельной сцены
+/// </summary>
+public class WorldSettings : MonoBehaviour
 {
+    public static WorldSettings Instance;
+
     /// <summary>
     /// Сила гравитации
     /// </summary>
-    public static float Gravity { get; set; }
+    public float Gravity { get => gravity; private set => gravity = value; }
+    [SerializeField] private float gravity;
+
     /// <summary>
-    /// Направление силы гравитации в пространстве
+    /// Направление вектора силы гравитации в пространстве
     /// </summary>
-    public static Vector3 GravityDirection { get; set; }
+    public Vector3 GravityDirection { get => gravityDirection; private set => gravityDirection = value; }
+    [SerializeField] private Vector3 gravityDirection;
+
+    /// <summary>
+    /// Максимальная длинна вектора скорости объектов
+    /// </summary>
+    public float MaxVelocityMagnitude { get => maxVelocityMagnitude; private set => maxVelocityMagnitude = value; }
+    [SerializeField] private float maxVelocityMagnitude;
+
+    /// <summary>
+    /// Вектор силы гравитации
+    /// </summary>
+    public Vector3 GravityVector { get => GravityDirection * Gravity; }
 
 
 
-
-    public static void Setup()
+    private void Awake()
     {
-        GravityDirection = new Vector3(0, -1, 0);
-        Gravity = 6f;
+        if (Instance != null)
+            throw new System.Exception("Two or more WorldSettings in Scene");
+
+        Instance = this;
     }
+    
 }
 

@@ -160,7 +160,7 @@ public class MoveSystem
 
                 }
 
-                rig.position += (WorldSettings.GravityDirection * WorldSettings.Gravity) * Time.deltaTime + dir * velocity;
+                rig.position += (WorldSettings.Instance.GravityDirection * WorldSettings.Instance.Gravity) * Time.deltaTime + dir * velocity;
 
                 break;
         }

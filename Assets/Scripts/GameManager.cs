@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    [SerializeField] private WorldSettings WorldSettings;
+
     public void Awake()
     {
         if (Instance != null)
@@ -17,12 +19,15 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
 
+        if (WorldSettings == null && (WorldSettings = GetComponent<WorldSettings>()) == null)
+            throw new System.Exception("No WorldSettings in Scene");
+        
+
         ConfigManager.Setup(new ConfigSetup()
         {
             ExecutionRoot = false
         });
         
-        WorldSettings.Setup();
 
         WeaponAssetManager.Initialize();
         companionAssetManager.Initialize();

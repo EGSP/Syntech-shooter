@@ -2,8 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class DetailData : IInventoryItem
 {
+    public DetailData(int count)
+    {
+        Count = count;
+    }
+
     public InventoryItemType ItemType { get; set; }
 
     /// <summary>

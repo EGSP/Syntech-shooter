@@ -30,7 +30,7 @@ public class Ammo : MonoBehaviour
         return new AmmoData(BulletID, Count);
     }
     
-    public void Update()
+    private void Update()
     {
         if (Used)
         {
@@ -38,7 +38,7 @@ public class Ammo : MonoBehaviour
         }
     }
 
-    public void Destroy()
+    private void Destroy()
     {
         Destroy(gameObject);
     }

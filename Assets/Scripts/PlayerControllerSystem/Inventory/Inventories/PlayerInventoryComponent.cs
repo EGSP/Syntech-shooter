@@ -39,7 +39,7 @@ public class PlayerInventoryComponent : InventoryComponent
             var inventoryAmmo = ammoList.FirstOrDefault
                 (x => x.ItemSendMessage(ammoData.BulletID) == true);
 
-            // Если не был найден боезапас с таким же идентификатором
+            // Если был найден боезапас с таким же идентификатором
             if(inventoryAmmo != null)
             {
                 // Слияние боеприпасов
