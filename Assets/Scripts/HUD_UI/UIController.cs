@@ -5,6 +5,8 @@ using UnityEngine;
 using System;
 using System.Linq;
 
+using MUI;
+
 public class UIController : MonoBehaviour
 {
     public delegate void CallHandler();
@@ -16,8 +18,13 @@ public class UIController : MonoBehaviour
             throw new System.Exception("UIController singleton Exception");
 
         Instance = this;
-        
+
+        if (Notificator == null)
+            throw new System.NullReferenceException();
+
     }
+
+    [SerializeField] private UI_Notificator Notificator;
 
     [SerializeField] private PlayerControllerComponent playerController;
     public PlayerControllerComponent PlayerController
@@ -67,6 +74,8 @@ public class UIController : MonoBehaviour
     /// Активен ли на данный момент крафтовый стол
     /// </summary>
     public bool isCraftTableActive { get; private set; }
+    
+
 
     // Start is called before the first frame update
     void Start()
@@ -112,6 +121,16 @@ public class UIController : MonoBehaviour
     {
         if (inventory.IsOpened == true)
             inventory.Close();
+    }
+
+    /// <summary>
+    /// Показывает уведомления
+    /// </summary>
+    /// <param name="message">Сообщение</param>
+    /// <param name="messageType">Тип сообщение</param>
+    public void ShowNotify(string message, MessageType messageType = MessageType.Information)
+    {
+        Notificator.ShowNotify(message, messageType);
     }
 
     ///// <summary>

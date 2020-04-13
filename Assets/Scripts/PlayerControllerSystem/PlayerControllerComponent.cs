@@ -114,6 +114,8 @@ public class PlayerControllerComponent : MonoBehaviour, IObservable
         InventoryComponent = GetComponent<InventoryComponent>();
         PlayerLifeComponent = GetComponent<PlayerLifeComponent>();
         WeaponHolder = GetComponent<WeaponHolder>();
+
+        AIManager.Instance.SetPlayerController(this);
     }
 
     // Start is called before the first frame update

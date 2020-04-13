@@ -22,6 +22,12 @@ namespace EffectObjects
             {
                 Particles = gameObject.GetComponentsInChildren<ParticleSystem>(true);
             }
+
+            for (int i = 0; i < Particles.Length; i++)
+            {
+                Particles[i].gameObject.SetActive(false);
+            }
+           
             IsFree = true;
         }
 
@@ -52,11 +58,10 @@ namespace EffectObjects
             for (int i = 0; i < Particles.Length; i++)
             {
                 var particleSystem = Particles[i];
-                particleSystem.gameObject.SetActive(false);
                 particleSystem.Stop();
-
-                particleSystem.gameObject.SetActive(true);
+                
                 particleSystem.Play();
+                particleSystem.gameObject.SetActive(true);
             }
             
         }

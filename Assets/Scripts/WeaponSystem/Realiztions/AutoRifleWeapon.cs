@@ -8,6 +8,7 @@ public class AutoRifleWeapon : WeaponComponent
     protected override void Awake()
     {
         base.Awake();
+        
     }
 
     public override WeaponUpdateOutput UpdateComponent(WeaponUpdateInput input)
@@ -76,16 +77,17 @@ public class AutoRifleWeapon : WeaponComponent
                     UnityEngine.Random.Range(-SpreadX, SpreadX),
                     UnityEngine.Random.Range(-SpreadY,SpreadY),
                     0);
+
                 // Вектор направления выстрела
                 Vector3 ShootForward = Quaternion.Euler(sprayOffset.y, sprayOffset.x, 0) * Trunk.forward;
                 ShootForward.Normalize();
                
                 var raycastAllHits = Physics.RaycastAll(Trunk.transform.position, ShootForward, BulletFlyDistance, GameManager.Instance.ShootRayMask);
                 
-
                 // Точки выхода пробития
                 List<Vector3> outputs;
                 var acceptedHits = ComputePenetration(OrderRaycastHits(ref raycastAllHits), ShootForward, out outputs);
+
                 // Получение списка LifeComponent
                 var lifeList = LifeComponentsFromRayhits(acceptedHits);
 
@@ -149,7 +151,7 @@ public class AutoRifleWeapon : WeaponComponent
         }
         else
         {
-            print("Magazine not availabile to shoot");
+            // Нечем стрелять
         }
         return false;
     }

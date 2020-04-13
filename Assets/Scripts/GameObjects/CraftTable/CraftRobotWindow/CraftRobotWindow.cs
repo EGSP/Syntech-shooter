@@ -7,6 +7,8 @@ using AIB.AIBehaviours;
 using System;
 using System.Linq;
 
+using MUI;
+
 [RequireComponent(typeof(RobotBuilder))]
 public class CraftRobotWindow : CraftTableWindow
 {
@@ -203,26 +205,29 @@ public class CraftRobotWindow : CraftTableWindow
         }
         else
         {
-            //List<IInventoryItem> playerDetails = PlayerControllerComponent.InventoryComponent.InventorySystem.GetListOfInventoryItem(InventoryItemType.Detail);
-            //DetailData detail = playerDetails.FirstOrDefault() as DetailData;
+            List<IInventoryItem> playerDetails = PlayerControllerComponent.InventoryComponent.InventorySystem.GetListOfInventoryItem(InventoryItemType.Detail);
+            DetailData detail = playerDetails.FirstOrDefault() as DetailData;
 
-            //if(detail != null)
-            //{
-            //    // Добавляем деталь
-            //    data.AddDetail(1);
+            if (detail != null)
+            {
+                if (detail.Count > 0)
+                {
+                    // Добавляем деталь
+                    data.AddDetail(1);
+                    detail.ReduceDetail(1);
 
-            //    // Изменяем интерфейс
-            //    RobotOverview.RobotBuildPanel.SetDetails(data.Current, data.Details);
-            //}
-            //else
-            //{
-            //    // Уведомление о нехватке деталей
-            //}
-            //Добавляем деталь
-            data.AddDetail(1);
-
-            // Изменяем интерфейс
-            RobotOverview.RobotBuildPanel.SetDetails(data);
+                    // Изменяем интерфейс
+                    RobotOverview.RobotBuildPanel.SetDetails(data);
+                }
+                else
+                {
+                    UIController.Instance.ShowNotify("Not enough details", MessageType.Warning);
+                }
+            }
+            else
+            {
+                UIController.Instance.ShowNotify("Not enough details", MessageType.Warning);
+            }
 
         }
     }

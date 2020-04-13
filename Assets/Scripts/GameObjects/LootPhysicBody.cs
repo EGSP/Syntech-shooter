@@ -17,10 +17,11 @@ public class LootPhysicBody : PooledObject, IPhysicBody
     [SerializeField] private float Mass = 1;
 
     /// <summary>
-    /// Сопротивление при скольжении по плоскости XZ (объект имеет 0 скорость по Y)
+    /// Быстрота сопротивления при скольжении по плоскости XZ (объект имеет 0 скорость по Y)
     /// </summary>
-    [Range(0,1)]
     [SerializeField] private float XZDrag;
+    // Текущее значение сопротивления
+    private float xzDrag;
 
     /// <summary>
     /// Радиус объекта
@@ -70,7 +71,15 @@ public class LootPhysicBody : PooledObject, IPhysicBody
             temp.y = 0;
             Velocity = temp;
 
-            Velocity = Vector3.Lerp(Velocity, Vector3.zero, XZDrag);
+            Velocity = Vector3.Lerp(Velocity, Vector3.zero, xzDrag);
+
+            // Контроль скольжения по полу
+            xzDrag += XZDrag * Time.deltaTime;
+            xzDrag = Mathf.Clamp(xzDrag, 0, 1);
+        }
+        else
+        {
+            xzDrag = 0;
         }
 
         // Проверка поверхности в направлении движения

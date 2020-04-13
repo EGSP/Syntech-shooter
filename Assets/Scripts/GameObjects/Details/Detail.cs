@@ -22,7 +22,15 @@ public class Detail : LootPhysicBody
         if (Used == true)
             return new DetailData(0);
 
+        Used = true;
         return new DetailData(Count);
+    }
+
+    public override void OnSpawnFromPool()
+    {
+        base.OnSpawnFromPool();
+
+        Used = false;
     }
 
     protected override void Update()

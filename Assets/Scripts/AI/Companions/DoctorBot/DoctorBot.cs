@@ -161,6 +161,16 @@ namespace AIB.AIBehaviours
             base.Start();
         }
 
+        protected override void OnEnableBehaviour()
+        {
+            SetBehaviourState(new IdleBehaviourState(this));
+        }
+
+        protected override void OnDisableBeahviour()
+        {
+            NavAgent.isStopped = true;
+        }
+
         public void SetPatient(LifeComponent patient)
         {
             // Если пациент не мы
@@ -233,16 +243,6 @@ namespace AIB.AIBehaviours
 
             Gizmos.color = Color.gray;
             Gizmos.DrawWireSphere(transform.position, refillDistance);
-        }
-
-        protected override void OnEnableBehaviour()
-        {
-            SetBehaviourState(new IdleBehaviourState(this));
-        }
-
-        protected override void OnDisableBeahviour()
-        {
-            NavAgent.isStopped = true;
         }
 
         public override void SendCreator(GameObject creator)

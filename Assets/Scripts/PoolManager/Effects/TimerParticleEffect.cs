@@ -25,8 +25,6 @@ namespace EffectObjects
             base.Initialize();
 
             timerCallbacker = new TimerCallbacker(PlayTime);
-            EffectManager.Instance.OnUpdate += timerCallbacker.Update;
-
             timerCallbacker.OnEmmitionEndCallback += StopEffect;
         }
         
@@ -36,6 +34,7 @@ namespace EffectObjects
             base.PlayEffect();
 
             timerCallbacker.Reset();
+            EffectManager.Instance.OnUpdate += timerCallbacker.Update;
         }
 
         public override void ResetEffect()
@@ -43,6 +42,14 @@ namespace EffectObjects
             base.ResetEffect();
 
             timerCallbacker.Reset();
+            EffectManager.Instance.OnUpdate += timerCallbacker.Update;
+        }
+
+        public override void StopEffect()
+        {
+            base.StopEffect();
+
+            EffectManager.Instance.OnUpdate -= timerCallbacker.Update;
         }
 
     }

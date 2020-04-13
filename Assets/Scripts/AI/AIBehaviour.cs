@@ -52,7 +52,7 @@ namespace AIB.AIBehaviours
         /// <summary>
         /// Включен ли AI
         /// </summary>
-        protected bool isEnabled;
+        public bool isEnabled { get; private set; }
 
         /// <summary>
         /// Вызывает насильную отписку
@@ -140,12 +140,11 @@ namespace AIB.AIBehaviours
 
         private void OnEnable()
         {
-            AIManager.Instance.OnUpdate += UpdateState;
+           
         }
 
         private void OnDisable()
         {
-            AIManager.Instance.OnUpdate -= UpdateState;
         }
 
         // Start is called before the first frame update
@@ -173,7 +172,11 @@ namespace AIB.AIBehaviours
             if (isEnabled)
                 return;
 
+            AIManager.Instance.OnUpdate += UpdateState;
+
             OnEnableBehaviour();
+
+            isEnabled = true;
         }
 
         /// <summary>
@@ -184,7 +187,11 @@ namespace AIB.AIBehaviours
             if (!isEnabled)
                 return;
 
+            AIManager.Instance.OnUpdate -= UpdateState;
+
             OnDisableBeahviour();
+
+            isEnabled = false;
         }
 
         /// <summary>
@@ -205,8 +212,11 @@ namespace AIB.AIBehaviours
         {
             if (behaviourState != null)
             {
-                // Освобождаем ресурсы прошлого состояния
-                CurrentBehaviourState.Dispose();
+                if (CurrentBehaviourState != null)
+                {
+                    // Освобождаем ресурсы прошлого состояния
+                    CurrentBehaviourState.Dispose();
+                }
 
                 // Присваиваем новое состояние
                 CurrentBehaviourState = behaviourState;
@@ -231,23 +241,22 @@ namespace AIB.AIBehaviours
             var delta = 0f;
             if (rotation > lastRotation)
             {
-                //// Поворот налево
-               delta = rotation - lastRotation;
-                //velocity = delta / updateData.deltaTime;
+                // Поворот налево
+                delta = rotation - lastRotation;
+
                 if (delta > angularDeltaTreshold)
                     sign = -1;
             }
             else
             {
-                //// Поворот направо
+                // Поворот направо
                 delta = lastRotation - rotation;
-                //velocity = delta / updateData.deltaTime;
 
                 if (delta > angularDeltaTreshold)
                     sign = 1;
             }
 
-            Debug.Log(delta);
+
             if (sign != 0)
             {
                 velocity += angularAcceleration * sign * updateData.deltaTime;

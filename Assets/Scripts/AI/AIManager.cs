@@ -18,6 +18,11 @@ public class AIManager : MonoBehaviour
     /// </summary>
     private AIUpdateData updateData;
 
+    /// <summary>
+    /// Контроллер игрока. Всегда не null
+    /// </summary>
+    public PlayerControllerComponent PlayerControllerComponent { get; private set; }
+
     private void Awake()
     {
         // Уничтожение компонента
@@ -38,10 +43,24 @@ public class AIManager : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        // Если компонент игрока пуст, то не обновляется AI
+        if (PlayerControllerComponent == null)
+            return;
+
         updateData.deltaTime = Time.deltaTime;
         updateData.GenerateRandomOne();
+        updateData.playerControllerComponent = PlayerControllerComponent;
 
         OnUpdate(updateData);
+    }
+
+    /// <summary>
+    /// Установка контроллера игрока
+    /// </summary>
+    /// <param name="playerControllerComponent">Контроллер игрока</param>
+    public void SetPlayerController(PlayerControllerComponent playerControllerComponent)
+    {
+        PlayerControllerComponent = playerControllerComponent;
     }
 }
 
@@ -59,6 +78,11 @@ public class AIUpdateData
     /// Случайное число в диапазоне от 0 до 1. Для получения агентом использовать метод GetRandomOne
     /// </summary>
     public float RandomOne { get; private set; }
+
+    /// <summary>
+    /// Контроллер игрока. Всегда не равен null
+    /// </summary>
+    public PlayerControllerComponent playerControllerComponent;
 
     /// <summary>
     /// Генерирует случайное значение в пределе от 0 до 1

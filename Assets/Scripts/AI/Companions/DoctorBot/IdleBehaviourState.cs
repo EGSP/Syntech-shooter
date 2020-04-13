@@ -30,16 +30,17 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
 
             Name = "DoctorIdle";
 
-            movementAnim = Animator.StringToHash("Movement");
             forwardAnim = Animator.StringToHash("Forward");
             angularAnim = Animator.StringToHash("Side");
         }
 
         private TimerCallbacker healTimerCallbacker;
 
+        /// <summary>
+        /// Может ли доктор лечить сейчас (используется таймер)
+        /// </summary>
         private bool CanHeal;
-
-        private int movementAnim;
+        
         private int forwardAnim;
         private int angularAnim;
 
@@ -75,8 +76,7 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
                         doctorRotation,
                         Quaternion.LookRotation(dir, Vector3.up),
                         Doctor.AngularSpeed* updateData.deltaTime);
-
-
+                    
                 }
                 else
                 {
@@ -149,20 +149,6 @@ namespace AIB.AIBehaviourStates.DoctorBotStates
 
             animator.SetFloat(forwardAnim, Doctor.ForwardVelocity);
             animator.SetFloat(angularAnim, Doctor.AngularVelocity);
-
-            //if (Doctor.NavAgent.isStopped == true)
-            //{
-            //    Movement = false
-            //    animator.SetBool(movementAnim, false);
-            //}
-            //else
-            //{
-            //    animator.SetBool(movementAnim, true);
-
-            //    animator.SetFloat(forwardAnim, Doctor.ForwardVelocity);
-            //    animator.SetFloat(angularAnim, Doctor.AngularVelocity);
-
-            //}
         }
 
         /// <summary>
